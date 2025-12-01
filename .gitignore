@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Template artifacts (copied from template but not needed in CLI)
+template/frontend/node_modules/
+template/frontend/pnpm-lock.yaml
+template/backend/.venv/
+template/backend/uv.lock
+template/backend/__pycache__/

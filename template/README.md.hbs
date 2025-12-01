@@ -1,0 +1,75 @@
+# {{projectName}}
+
+A full-stack app built with [fastreact](https://www.npmjs.com/package/create-fastreact).
+
+## Prerequisites
+
+- [Modal CLI](https://modal.com/docs/guide) installed and logged in (`modal token new`)
+
+## Stack
+
+**Frontend**
+- React 19 + Vite + TypeScript
+- Tailwind CSS v4
+- shadcn/ui (New York style)
+
+**Backend**
+- FastAPI on Modal (serverless)
+
+## Development
+
+```bash
+pnpm run dev
+```
+
+This starts both:
+- **Frontend**: http://localhost:5173
+- **Backend**: Modal serve (URL configured in `frontend/.env.local`)
+
+## Deployment
+
+### Backend → Modal
+
+```bash
+cd backend
+modal deploy modal_app.py
+```
+
+### Frontend → Vercel
+
+```bash
+cd frontend
+vercel
+```
+
+Set environment variables in Vercel:
+- `VITE_API_URL` - Your Modal production URL (without `-dev`)
+- `VITE_MODAL_KEY` - Your proxy auth token ID
+- `VITE_MODAL_SECRET` - Your proxy auth token secret
+
+## Using the API
+
+```typescript
+import { api } from "@/lib/api";
+
+// GET request
+const data = await api<{ message: string }>("/api/hello?name=World");
+
+// POST request
+const result = await api("/api/items", {
+  method: "POST",
+  body: JSON.stringify({ name: "item" }),
+});
+```
+
+## Adding shadcn components
+
+```bash
+cd frontend
+pnpm dlx shadcn@latest add button
+```
+
+## API Endpoints
+
+- `GET /api/health` - Health check
+- `GET /api/hello?name=World` - Hello endpoint

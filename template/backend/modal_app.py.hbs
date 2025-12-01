@@ -1,0 +1,19 @@
+import modal
+
+app = modal.App("{{projectName}}-backend")
+
+image = (
+    modal.Image.debian_slim(python_version="3.12")
+    .pip_install("uv")
+    .add_local_file("pyproject.toml", "/app/pyproject.toml")
+    .add_local_dir("app", "/app/app")
+    .run_commands("cd /app && uv pip install --system -r pyproject.toml")
+)
+
+
+@app.function(image=image)
+@modal.asgi_app(requires_proxy_auth=True)
+def fastapi_app():
+    from app.main import app
+
+    return app

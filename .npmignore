@@ -1,0 +1,11 @@
+# Source files (dist is built)
+src/
+
+# Lock files (users generate fresh ones)
+template/frontend/pnpm-lock.yaml
+template/backend/uv.lock
+
+# Development
+tsconfig.json
+.git/
+node_modules/

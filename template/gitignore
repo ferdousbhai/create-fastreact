@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+
+# Build
+dist/
+build/
+
+# Environment
+.env*.local
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+
+# Modal
+.modal/
+
+# Lock files (optional - can be committed)
+# pnpm-lock.yaml
+# uv.lock
