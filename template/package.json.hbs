@@ -4,7 +4,9 @@
   "scripts": {
     "dev": "concurrently \"pnpm run dev:frontend\" \"pnpm run dev:backend\"",
     "dev:frontend": "cd frontend && pnpm run dev",
-    "dev:backend": "cd backend && modal serve modal_app.py"
+    "dev:backend": "cd backend && modal serve modal_app.py",
+    "agent": "cd agent && uv run agent",
+    "agent:install": "cd agent && uv sync"
   },
   "devDependencies": {
     "concurrently": "^9.0.0"
