@@ -93,4 +93,46 @@ Framework validation and agentic flow architecture improvement:
 - Session resumption improvements
 - Security audit of bash command validation
 
+### Session 3 - Security, Prompts, and Dev Server Testing (2025-12-05)
+**Progress: 10/13 tests passing (77%)**
+
+**Completed:**
+1. ✅ Security audit of bash command validation
+   - Enhanced `validate_bash_command()` with stronger regex patterns
+   - Fixed rm validation to detect separate flags (-r -f) and long flags (--recursive)
+   - Added protection against curl/wget piping to interpreters
+   - Added protection against download-then-execute patterns
+   - Block arbitrary PID killing with `kill` command
+   - All 26 security test cases pass
+
+2. ✅ Improved session resumption and context passing
+   - Updated coding_prompt.md with structured progress notes template
+   - Added verification step before new work
+   - Better context handoff between sessions
+
+3. ✅ Frontend dev server starts correctly
+   - Verified: `cd frontend && pnpm run dev` works
+   - Vite serves on http://localhost:5173
+
+4. ✅ Backend Modal dev server starts correctly
+   - Fixed Modal template bug: added `copy=True` to `add_local_file()` and `add_local_dir()`
+   - Required because `run_commands()` follows local file additions
+   - Modal serve now deploys successfully to Modal infrastructure
+   - API responds (returns 401 as expected with proxy auth enabled)
+
+**Key Changes:**
+- `template/agent/agent.py`: Enhanced bash command validation with 50+ lines of security checks
+- `template/agent/prompts/coding_prompt.md`: Improved session handoff with structured notes
+- `template/backend/modal_app.py.hbs`: Added `copy=True` to fix Modal build
+
+**Remaining (3 tests):**
+- Modal CLI integration testing (install/login prompts)
+- Agent Claude Code mode testing
+- Agent API mode testing
+
+**Next Session Should:**
+- Test Modal CLI integration by simulating missing Modal installation
+- Test agent startup in both Claude Code and API modes
+- These tests may require mocking or careful environment setup
+
 ---
