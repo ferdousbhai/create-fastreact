@@ -1,0 +1,18 @@
+# Task: Framework Validation and Agentic Flow Architecture Improvement
+
+## Overview
+Validate that the project functions as documented in its README, identify and remove dead/unused code, review for bugs and architectural issues, then improve the agentic flow architecture by adapting patterns from the `autonomous-claude` reference project to fit the React + FastAPI + Modal stack.
+
+## Requirements
+- Verify all README-documented features work as intended
+- Identify and remove dead/unused code throughout the codebase
+- Review and document bugs, inconsistencies, or architectural issues
+- Adapt agentic flow patterns from `autonomous-claude` to fit React + FastAPI + Modal architecture
+- Keep code concise and maintainable
+- Research latest docs and best practices for the technology stack as needed
+
+## Guidelines
+- Follow existing code patterns and conventions in both projects
+- Adapt patterns thoughtfully—don't force-fit incompatible architectural decisions
+- Prioritize fixes that align with the project's technology choices (React, FastAPI, Modal)
+- Document significant changes or recommendations

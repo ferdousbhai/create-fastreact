@@ -1,0 +1,68 @@
+# create-fastreact - Development Progress
+
+## Project Summary
+
+**What it does**: A CLI scaffolding tool (`pnpm create fastreact`) that generates full-stack AI-powered projects with:
+- Frontend: React 19 + Vite + TypeScript + Tailwind CSS v4 + shadcn/ui
+- Backend: FastAPI on Modal (serverless Python)
+- AI Agent: Autonomous coding agent that builds apps from plain-English descriptions
+
+**Technology Stack**:
+- CLI: Node.js + TypeScript (tsup build)
+- Template system: Handlebars templates (.hbs files)
+- Package manager: pnpm (for Node.js), uv (for Python)
+- Cloud: Modal for serverless deployment
+
+**Project Structure**:
+```
+create-fastreact/
+├── src/                    # CLI source code
+│   ├── index.ts            # Main CLI entry point
+│   └── create.ts           # Project scaffolding logic
+├── template/               # Template files copied to new projects
+│   ├── frontend/           # React app template
+│   ├── backend/            # FastAPI app template
+│   └── agent/              # Autonomous coding agent
+├── dist/                   # Built CLI output
+└── package.json            # CLI package configuration
+```
+
+## Current Task (from app_spec.txt)
+
+Framework validation and agentic flow architecture improvement:
+1. Verify all README-documented features work as intended
+2. Identify and remove dead/unused code
+3. Review and document bugs, inconsistencies, or architectural issues
+4. Adapt agentic flow patterns from `autonomous-claude` to fit React + FastAPI + Modal
+
+## Initial Assessment
+
+### Key Observations
+
+1. **Agent Schema Inconsistency**: The agent's `count_passing_features()` function in `agent.py` expects a nested `categories[].features[]` structure, but the feature_list.json format in prompts also uses this format. Need to verify consistency.
+
+2. **CLI Flow**: The CLI handles Modal installation/login gracefully with interactive prompts, then scaffolds a complete project with all dependencies.
+
+3. **Agentic Architecture**: Two-phase approach:
+   - Initializer: Reads app_spec.md → generates feature_list.json
+   - Coder: Implements features one-by-one from feature_list.json
+
+4. **Security**: Agent has bash command allowlist with restrictions on dangerous operations (rm -rf limited to build dirs, kill limited to dev processes).
+
+### Potential Issues to Investigate
+
+1. **Feature list schema**: Verify the generated schema matches what the parser expects
+2. **Template file handling**: Ensure .hbs files are correctly processed and .gitignore renamed
+3. **Modal proxy auth**: The `requires_proxy_auth=True` default may cause issues if tokens aren't set
+4. **Dev server startup**: README mentions `pnpm run dev` in root but may not exist in generated projects
+
+## Session Notes
+
+### Session 1 - Setup (2024-12-05)
+- Analyzed existing codebase structure
+- Created feature_list.json with 13 tasks covering validation, bugfix, enhancement, and refactor work
+- Created init.sh for dev environment setup
+- Configured Puppeteer MCP for web testing
+- Ready for coding agent to begin implementation
+
+---
