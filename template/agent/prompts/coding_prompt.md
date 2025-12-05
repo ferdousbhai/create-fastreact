@@ -2,48 +2,98 @@
 
 Continue implementing the application from feature_list.json.
 
-## Step 1: Orient Yourself
-1. Read `feature_list.json` to see all features and progress
-2. Read `app_spec.md` for the full app description
-3. Read `claude-progress.txt` for notes from previous sessions
-4. Run `git log --oneline -5` to see recent commits
+## Step 1: Orient Yourself (MANDATORY)
 
-## Step 2: Select Next Feature
-Find the first feature where `"passes": false`. This is your focus for this session.
+Start by reading these files to understand the project state:
 
-## Step 3: Implement the Feature
-- Write code in `frontend/` (React) and/or `backend/` (FastAPI)
-- Use existing patterns in the codebase
-- Add shadcn/ui components: `cd frontend && pnpm dlx shadcn@latest add <name>`
-- Keep changes focused on the single feature
+```bash
+# 1. Check current progress
+cat feature_list.json | grep -c '"passes": true'
+cat feature_list.json | grep -c '"passes": false'
 
-## Step 4: Test the Feature
-- Start dev servers if needed:
-  - Frontend: `cd frontend && pnpm run dev`
-  - Backend: `cd backend && modal serve modal_app.py`
-- Manually verify the feature works per its `steps` array
-- Check browser console for errors
+# 2. Read previous session notes
+cat claude-progress.txt
 
-## Step 5: Mark Complete
+# 3. See recent changes
+git log --oneline -5
+
+# 4. Understand the app requirements
+cat app_spec.md
+```
+
+## Step 2: Verify Before Building
+
+If there are passing features, verify 1-2 core ones still work:
+- Start dev servers: `./init.sh` or manually
+- Test a key user flow through the UI
+- If anything is broken, fix it BEFORE new work
+
+## Step 3: Select Next Feature
+
+Find the first feature where `"passes": false` in feature_list.json.
+This is your focus for this session.
+
+## Step 4: Implement the Feature
+
+Write code in:
+- `frontend/` - React 19 + TypeScript + Tailwind v4 + shadcn/ui
+- `backend/` - FastAPI on Modal
+
+Add UI components:
+```bash
+cd frontend && pnpm dlx shadcn@latest add <component-name>
+```
+
+## Step 5: Test Thoroughly
+
+1. Start dev servers if not running:
+   - Frontend: `cd frontend && pnpm run dev` (http://localhost:5173)
+   - Backend: `cd backend && modal serve modal_app.py`
+2. Verify the feature works per its `steps` array
+3. Check browser console for errors
+4. Test edge cases
+
+## Step 6: Mark Complete
+
 Update `feature_list.json`:
-- Set `"passes": true` for the completed feature
-- NEVER remove features or edit their descriptions
+```json
+"passes": true
+```
 
-## Step 6: Commit
+ONLY change the `passes` field - NEVER edit descriptions or steps.
+
+## Step 7: Commit
+
 ```bash
 git add -A
 git commit -m "feat: <description>"
 ```
 
-## Step 7: Update Progress
-Append to `claude-progress.txt`:
-- What you implemented
-- Any issues encountered
-- Notes for next session
+## Step 8: Update Progress Notes
+
+Append a session entry to `claude-progress.txt`:
+
+```
+### Session [N] - [Date]
+**Progress:** X/Y features passing
+
+**Completed:**
+- Feature: <name> - <brief description of implementation>
+
+**Issues Encountered:**
+- <any blockers or problems>
+
+**Next Session Should:**
+- <specific next steps>
+- <any warnings or gotchas>
+```
+
+This context helps the next session pick up where you left off.
 
 ## Rules
-- ONE feature per session
-- Test before marking complete
-- Commit after each feature
-- Leave codebase in working state
-- If blocked, document the issue and move to next feature
+
+1. **ONE feature per session** - Complete and commit before moving on
+2. **Test before marking complete** - Verify through the actual UI
+3. **Leave codebase working** - No broken features when you exit
+4. **Document your work** - claude-progress.txt is the handoff to the next session
+5. **If blocked** - Document the issue clearly and move to the next feature

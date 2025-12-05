@@ -139,22 +139,70 @@ def extract_commands(bash_command: str) -> list[str]:
 
 
 def validate_bash_command(command: str) -> tuple[bool, str]:
-    """Validate bash command against allowlist."""
+    """Validate bash command against allowlist with enhanced security checks."""
     commands = extract_commands(command)
 
     for cmd in commands:
         if cmd not in ALLOWED_COMMANDS:
             return False, f"Command '{cmd}' not allowed"
 
-        if cmd == "rm" and ("-rf" in command or "-fr" in command):
-            safe_dirs = ["node_modules", "__pycache__", ".venv", "dist", "build"]
-            if not any(d in command for d in safe_dirs):
-                return False, "rm -rf only allowed for build/cache directories"
+    # Enhanced rm validation - check for recursive deletion
+    if "rm" in commands:
+        # Match rm with -r, -R, --recursive, -f, --force flags (must be space-prefixed)
+        rm_dangerous = re.search(r'\brm\b[^;&|]*(\s-[rRf]|\s--recursive|\s--force)', command)
+        if rm_dangerous:
+            safe_dirs = ["node_modules", "__pycache__", ".venv", "dist", "build", ".next", ".turbo"]
+            # Extract paths after rm command (skip flags)
+            # Find the rm segment and extract non-flag arguments
+            rm_segment = re.search(r'\brm\b([^;&|]*)', command)
+            if rm_segment:
+                rm_args = rm_segment.group(1)
+                # Split by whitespace and filter out flags (starting with -)
+                parts = rm_args.split()
+                targets = [p for p in parts if p and not p.startswith('-')]
 
-        if cmd in ("pkill", "kill"):
-            allowed_targets = ["node", "npm", "pnpm", "vite", "modal", "uvicorn", "python"]
-            if not any(t in command for t in allowed_targets):
-                return False, f"{cmd} only allowed for dev processes"
+                if not targets:
+                    return False, "rm with recursive/force flags requires explicit target"
+
+                for target in targets:
+                    target_clean = target.rstrip('/')
+                    # Check if target is a safe directory
+                    is_safe = any(
+                        target_clean == d or
+                        target_clean == f"./{d}" or
+                        target_clean.endswith(f"/{d}")
+                        for d in safe_dirs
+                    )
+                    if not is_safe:
+                        return False, f"rm with recursive/force flags only allowed for: {', '.join(safe_dirs)}"
+
+    # Enhanced kill/pkill validation - require process name as primary argument
+    if "kill" in commands or "pkill" in commands:
+        allowed_targets = ["node", "npm", "pnpm", "vite", "modal", "uvicorn", "python", "tsc"]
+        # For pkill, the pattern should be a dev process
+        if "pkill" in commands:
+            pkill_match = re.search(r'\bpkill\b[^;&|]*?([^\s-][^\s]*)\s*$', command)
+            if not pkill_match or not any(t in pkill_match.group(1) for t in allowed_targets):
+                return False, f"pkill only allowed for: {', '.join(allowed_targets)}"
+        # For kill, only allow with signal + dev process name patterns
+        if "kill" in commands and "pkill" not in commands:
+            # kill should typically be used with pkill pattern or specific known PIDs
+            # Block arbitrary PID killing
+            if re.search(r'\bkill\b[^;&|]*\d+', command):
+                return False, "kill with arbitrary PIDs not allowed; use pkill with process names"
+
+    # Block curl/wget piping to interpreters
+    if "curl" in commands or "wget" in commands:
+        if re.search(r'(curl|wget)[^|]*\|\s*(python|python3|node|bash|sh|perl|ruby)', command):
+            return False, "Piping downloaded content to interpreters not allowed"
+
+    # Block downloading and executing in sequence
+    if ("curl" in commands or "wget" in commands) and ("python" in commands or "python3" in commands or "node" in commands):
+        # Check for download-then-execute patterns
+        has_download = re.search(r'(curl|wget)[^;&|]*(\.py|\.js|\.sh)', command)
+        has_execute = re.search(r'(python|python3|node)\s+\S*\.(py|js)', command)
+        if has_download and has_execute:
+            return False, "Downloading and executing scripts not allowed"
 
     return True, ""
 
@@ -427,46 +475,68 @@ CODING_PROMPT = """# Coding Session
 
 Continue implementing the application from feature_list.json.
 
-## Step 1: Orient Yourself
-1. Read `feature_list.json` to see all features and progress
-2. Read `app_spec.md` for the full app description
-3. Read `claude-progress.txt` for notes from previous sessions
-4. Run `git log --oneline -5` to see recent commits
+## Step 1: Orient Yourself (MANDATORY)
 
-## Step 2: Select Next Feature
+Start by reading these files to understand the project state:
+1. `feature_list.json` - see all features and progress
+2. `claude-progress.txt` - notes from previous sessions
+3. `git log --oneline -5` - recent commits
+4. `app_spec.md` - full app requirements
+
+## Step 2: Verify Before Building
+
+If there are passing features, verify 1-2 core ones still work:
+- Start dev servers: `./init.sh` or manually
+- Test a key user flow through the UI
+- If anything is broken, fix it BEFORE new work
+
+## Step 3: Select Next Feature
+
 Find the first feature where `"passes": false`. This is your focus.
 
-## Step 3: Implement the Feature
-- Write code in `frontend/` and/or `backend/`
-- Use existing patterns in the codebase
-- Add shadcn/ui components: `cd frontend && pnpm dlx shadcn@latest add <name>`
+## Step 4: Implement the Feature
 
-## Step 4: Test the Feature
-- Start dev servers if needed
-- Manually verify the feature works per its `steps` array
-- Check browser console for errors
+Write code in:
+- `frontend/` - React 19 + TypeScript + Tailwind v4 + shadcn/ui
+- `backend/` - FastAPI on Modal
 
-## Step 5: Mark Complete
-Update `feature_list.json`:
-- Set `"passes": true` for the completed feature
-- NEVER remove features or edit descriptions
+Add UI components: `cd frontend && pnpm dlx shadcn@latest add <name>`
 
-## Step 6: Commit
+## Step 5: Test Thoroughly
+
+1. Start dev servers:
+   - Frontend: `cd frontend && pnpm run dev` (http://localhost:5173)
+   - Backend: `cd backend && modal serve modal_app.py`
+2. Verify the feature works per its `steps` array
+3. Check browser console for errors
+
+## Step 6: Mark Complete
+
+Update `feature_list.json` - set `"passes": true`
+ONLY change the `passes` field - NEVER edit descriptions or steps.
+
+## Step 7: Commit
+
 ```bash
 git add -A
 git commit -m "feat: <description>"
 ```
 
-## Step 7: Update Progress
+## Step 8: Update Progress Notes
+
 Append to `claude-progress.txt`:
-- What you implemented
+- What you completed
 - Any issues encountered
 - Notes for next session
 
+This context helps the next session pick up where you left off.
+
 ## Rules
-- ONE feature per session
-- Test before marking complete
-- Leave codebase in working state
+
+1. ONE feature per session - complete and commit before moving on
+2. Test before marking complete - verify through the actual UI
+3. Leave codebase working - no broken features when you exit
+4. Document your work - claude-progress.txt is the handoff
 """
 
 

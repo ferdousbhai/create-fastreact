@@ -28,7 +28,7 @@
       "Run 'cd frontend && pnpm run dev'",
       "Verify http://localhost:5173 loads"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "validation",
@@ -38,7 +38,7 @@
       "Run 'cd backend && modal serve modal_app.py'",
       "Verify /api/health returns {status: 'ok'}"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "validation",
@@ -99,7 +99,7 @@
       "Improve claude-progress.txt usage for context handoff",
       "Test multi-session workflow"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "enhancement",
@@ -119,7 +119,7 @@
       "Check for command injection vulnerabilities",
       "Document any security recommendations"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "refactor",
