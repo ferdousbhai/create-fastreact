@@ -8,3 +8,5 @@ template/frontend/pnpm-lock.yaml
 template/backend/.venv/
 template/backend/uv.lock
 template/backend/__pycache__/
+template/agent/__pycache__/
+.autonomous-claude/
