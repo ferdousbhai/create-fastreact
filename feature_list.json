@@ -18,7 +18,7 @@
       "Run CLI with Modal installed but not logged in",
       "Verify login prompt appears"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "validation",
@@ -48,18 +48,7 @@
       "Run 'cd agent && uv run agent --claude-code'",
       "Verify agent starts and processes prompts"
     ],
-    "passes": false
-  },
-  {
-    "category": "validation",
-    "description": "Agent can run in API mode with ANTHROPIC_API_KEY",
-    "steps": [
-      "Create test project",
-      "Set ANTHROPIC_API_KEY environment variable",
-      "Run 'cd agent && uv run agent --api'",
-      "Verify agent starts and processes prompts"
-    ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "bugfix",

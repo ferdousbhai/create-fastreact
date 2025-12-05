@@ -29,9 +29,7 @@ Based on [Anthropic's autonomous coding architecture](https://www.anthropic.com/
 - [Python](https://www.python.org/) 3.12+
 - [uv](https://docs.astral.sh/uv/) (Python package manager)
 - [Modal CLI](https://modal.com/docs/guide) (logged in)
-- **One of:**
-  - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (recommended - uses existing subscription), OR
-  - [Anthropic API key](https://console.anthropic.com/) (pay per use)
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (uses your existing subscription)
 
 ## Quick Start
 
@@ -52,15 +50,7 @@ cd my-app/agent
 uv run agent
 ```
 
-The agent auto-detects your auth method (in order):
-1. **Claude Code** installed → uses existing subscription (no extra cost)
-2. **ANTHROPIC_API_KEY** set → uses API directly
-
-Or specify explicitly:
-```bash
-uv run agent --claude-code    # Use Claude Code
-uv run agent --api            # Use API key
-```
+The agent runs via Claude Code CLI using your existing authentication.
 
 The agent will:
 - **Session 1 (Initializer)**: Create `feature_list.json` from your description
@@ -101,16 +91,6 @@ my-app/
 ```
 
 ## Configuring the Agent
-
-### Environment Variables
-
-For `--api` mode only (Claude Code handles its own config):
-
-```bash
-ANTHROPIC_API_KEY=sk-ant-...
-FASTREACT_INITIALIZER_MODEL=claude-opus-4-5-20251101  # optional
-FASTREACT_CODING_MODEL=claude-sonnet-4-5-20250929    # optional, saves costs
-```
 
 ### Customizing Prompts
 
