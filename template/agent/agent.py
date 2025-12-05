@@ -163,7 +163,7 @@ def validate_bash_command(command: str) -> tuple[bool, str]:
 # Progress Tracking
 # =============================================================================
 
-def load_feature_list(project_dir: Path) -> dict | None:
+def load_feature_list(project_dir: Path) -> list | dict | None:
     """Load feature_list.json from project directory."""
     feature_file = project_dir / "feature_list.json"
     if not feature_file.exists():
@@ -176,19 +176,30 @@ def load_feature_list(project_dir: Path) -> dict | None:
 
 
 def count_passing_features(project_dir: Path) -> tuple[int, int]:
-    """Count passing features from feature_list.json."""
-    features = load_feature_list(project_dir)
-    if not features:
+    """Count passing features from feature_list.json.
+
+    Supports two formats:
+    1. Flat array: [{"passes": true}, ...]
+    2. Nested categories: {"categories": [{"features": [{"passes": true}]}]}
+    """
+    data = load_feature_list(project_dir)
+    if not data:
         return 0, 0
 
     total = 0
     passing = 0
 
-    for category in features.get("categories", []):
-        for feature in category.get("features", []):
+    if isinstance(data, list):
+        for feature in data:
             total += 1
             if feature.get("passes", False):
                 passing += 1
+    elif isinstance(data, dict):
+        for category in data.get("categories", []):
+            for feature in category.get("features", []):
+                total += 1
+                if feature.get("passes", False):
+                    passing += 1
 
     return passing, total
 
@@ -372,35 +383,25 @@ You are starting a NEW project. Your task is to analyze the app description and 
 Read `app_spec.md` to understand what the user wants to build.
 
 ## Step 2: Create feature_list.json
-Based on the app description, create `feature_list.json` with this EXACT structure:
+Based on the app description, create `feature_list.json` as a flat array:
 
 ```json
-{
-  "projectName": "<from app_spec>",
-  "generatedAt": "<ISO timestamp>",
-  "categories": [
-    {
-      "name": "Category Name",
-      "features": [
-        {
-          "id": "unique-feature-id",
-          "name": "Feature Name",
-          "description": "What this feature does",
-          "testSteps": ["Step 1", "Step 2", "Step 3"],
-          "passes": false
-        }
-      ]
-    }
-  ]
-}
+[
+  {
+    "category": "Category Name",
+    "description": "What this feature does and why",
+    "steps": ["Step 1 to verify", "Step 2 to verify", "Step 3 to verify"],
+    "passes": false
+  }
+]
 ```
 
 ## Guidelines for Feature Breakdown
-1. Break the app into logical categories (e.g., "Authentication", "Core Features", "UI/UX")
-2. Each feature should be small enough to implement in one session
-3. Include specific test steps for each feature
+1. Group features by category (e.g., "api", "auth", "core", "ui")
+2. Each feature should be small enough to implement in one session (~30 min of work)
+3. Include specific, verifiable test steps for each feature
 4. Order features by dependency (foundational features first)
-5. Start with API/backend features, then frontend
+5. Start with API/backend setup, then frontend
 6. Include 15-30 features total depending on app complexity
 7. All features start with "passes": false
 
@@ -442,7 +443,7 @@ Find the first feature where `"passes": false`. This is your focus.
 
 ## Step 4: Test the Feature
 - Start dev servers if needed
-- Manually verify the feature works per its testSteps
+- Manually verify the feature works per its `steps` array
 - Check browser console for errors
 
 ## Step 5: Mark Complete

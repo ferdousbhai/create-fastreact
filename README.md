@@ -77,7 +77,8 @@ If you want to code manually instead of using the agent:
 
 ```bash
 cd my-app
-pnpm run dev
+./init.sh      # Install dependencies (first time only)
+pnpm run dev   # Start frontend and backend dev servers
 ```
 
 - Frontend: http://localhost:5173
@@ -93,6 +94,7 @@ my-app/
 │   ├── agent.py        # Main agent script
 │   ├── prompts/        # Customizable prompts
 │   └── .env.example    # Environment config template
+├── init.sh             # Dev environment setup script
 ├── app_spec.md         # Your app description
 ├── feature_list.json   # AI-generated feature list
 └── claude-progress.txt # AI session notes

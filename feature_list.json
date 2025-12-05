@@ -7,7 +7,7 @@
       "Verify frontend/, backend/, agent/ directories exist",
       "Verify app_spec.md and claude-progress.txt are generated"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "validation",
@@ -69,7 +69,7 @@
       "Verify initializer_prompt.md generates matching JSON schema",
       "Ensure consistency between expected and generated formats"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "enhancement",
@@ -79,7 +79,7 @@
       "Analyze template/agent/agent.py for unused functions",
       "Document any dead code found"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "enhancement",
@@ -89,7 +89,7 @@
       "Adapt feature_list.json schema if needed",
       "Update agent prompts to match improved patterns"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "enhancement",
@@ -109,7 +109,7 @@
       "Start dev servers if applicable",
       "Print access instructions"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "refactor",
@@ -129,6 +129,6 @@
       "Verify documented commands work as described",
       "Update any stale documentation"
     ],
-    "passes": false
+    "passes": true
   }
 ]

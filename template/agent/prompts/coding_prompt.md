@@ -21,7 +21,7 @@ Find the first feature where `"passes": false`. This is your focus for this sess
 - Start dev servers if needed:
   - Frontend: `cd frontend && pnpm run dev`
   - Backend: `cd backend && modal serve modal_app.py`
-- Manually verify the feature works per its testSteps
+- Manually verify the feature works per its `steps` array
 - Check browser console for errors
 
 ## Step 5: Mark Complete

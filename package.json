@@ -11,8 +11,8 @@
     "template"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format esm --clean",
-    "dev": "tsup src/index.ts --format esm --watch"
+    "build": "tsup src/index.ts src/create.ts --format esm --clean --dts",
+    "dev": "tsup src/index.ts src/create.ts --format esm --watch --dts"
   },
   "dependencies": {
     "open": "^11.0.0",

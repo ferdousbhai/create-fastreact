@@ -65,4 +65,32 @@ Framework validation and agentic flow architecture improvement:
 - Configured Puppeteer MCP for web testing
 - Ready for coding agent to begin implementation
 
+### Session 2 - Bug Fixes and Enhancements (2024-12-05)
+**Progress: 6/13 tests passing (46%)**
+
+**Completed:**
+1. ✅ CLI creates project with expected directory structure - verified with test
+2. ✅ Fixed agent.py feature_list.json schema parsing bug
+   - Updated `count_passing_features()` to support both flat array and nested formats
+   - Changed prompts to use simpler flat array format (matching autonomous-claude pattern)
+3. ✅ Reviewed dead code - no significant unused code found in CLI or agent
+4. ✅ Adapted autonomous-claude progress tracking patterns
+5. ✅ Added init.sh to template for consistent dev environment setup
+6. ✅ Updated README to match actual behavior
+
+**Key Changes:**
+- `template/agent/agent.py`: Fixed `count_passing_features()` to handle flat array format
+- `template/agent/prompts/initializer_prompt.md`: Updated to generate flat array format
+- `template/agent/prompts/coding_prompt.md`: Updated to reference `steps` array
+- `template/init.sh`: New file for dev environment setup
+- `README.md`: Added init.sh to project structure and manual development section
+- `package.json`: Build now exports create.ts separately for testing
+
+**Remaining (7 tests):**
+- Modal CLI integration testing
+- Frontend/backend dev server verification
+- Agent mode testing (Claude Code and API)
+- Session resumption improvements
+- Security audit of bash command validation
+
 ---
