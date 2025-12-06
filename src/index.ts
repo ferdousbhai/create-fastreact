@@ -432,7 +432,7 @@ async function main() {
     console.log(pc.cyan(`    cd ${projectName}/agent`));
     console.log(pc.cyan("    uv run agent"));
     console.log();
-    console.log(pc.dim("  The agent auto-detects Claude Code or ANTHROPIC_API_KEY."));
+    console.log(pc.dim("  The agent uses your Claude Code authentication."));
     console.log(pc.dim("  Monitor progress in feature_list.json and claude-progress.txt"));
     console.log();
 
