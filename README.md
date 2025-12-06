@@ -44,35 +44,34 @@ You'll be prompted for:
 - App description (plain English)
 - Proxy auth tokens (optional)
 
-2. Run the AI agent:
+2. **Enter the project directory** (required):
 ```bash
-cd my-app/agent
-uv run agent
+cd my-app
 ```
 
-The agent runs via Claude Code CLI using your existing authentication.
+3. Run the AI agent:
+```bash
+pnpm run agent
+```
 
 The agent will:
 - **Session 1 (Initializer)**: Create `feature_list.json` from your description
 - **Session 2+ (Coding)**: Implement features one by one
 
-3. Monitor progress:
+4. Monitor progress:
 - `feature_list.json` - Track which features are done
 - `claude-progress.txt` - Session notes from the AI
 - `git log` - See commits for each feature
 
 ## Manual Development
 
-If you want to code manually instead of using the agent:
-
 ```bash
 cd my-app
-./init.sh      # Install dependencies (first time only)
-pnpm run dev   # Start frontend and backend dev servers
+pnpm run dev   # Start frontend + backend dev servers
 ```
 
 - Frontend: http://localhost:5173
-- Backend: Your Modal dev endpoint
+- Backend: Modal serve (hot-reloading)
 
 ## Project Structure
 
@@ -84,7 +83,6 @@ my-app/
 │   ├── agent.py        # Main agent script
 │   ├── prompts/        # Customizable prompts
 │   └── .env.example    # Environment config template
-├── init.sh             # Dev environment setup script
 ├── app_spec.md         # Your app description
 ├── feature_list.json   # AI-generated feature list
 └── claude-progress.txt # AI session notes

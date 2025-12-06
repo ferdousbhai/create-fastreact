@@ -2,11 +2,22 @@ node_modules/
 dist/
 *.tsbuildinfo
 
-# Template artifacts (copied from template but not needed in CLI)
+# Template artifacts (generated during development/testing)
 template/frontend/node_modules/
 template/frontend/pnpm-lock.yaml
 template/backend/.venv/
 template/backend/uv.lock
 template/backend/__pycache__/
 template/agent/__pycache__/
+
+# Development/testing artifacts
 .autonomous-claude/
+app_spec.txt
+claude-progress.txt
+feature_list.json
+
+# Local IDE/tool settings
+.claude/
+
+# Local documentation
+RELEASING.md

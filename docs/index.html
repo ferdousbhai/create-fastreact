@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastReact Documentation</title>
+    <meta name="description" content="Learn how to build fullstack apps with React + FastAPI. The Python-first framework for modern web development.">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ferdousbhai.github.io/create-fastreact/">
+    <meta property="og:title" content="FastReact Documentation">
+    <meta property="og:description" content="Learn how to build fullstack apps with React + FastAPI. The Python-first framework for modern web development.">
+
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="docs.css">
+
+    <!-- Syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">FastReact</span>
+            </a>
+            <nav class="header-nav">
+                <a href="https://github.com/ferdousbhai/create-fastreact" class="nav-link" target="_blank">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <h3 class="nav-section-title">Introduction</h3>
+                    <ul class="nav-list">
+                        <li>
+                            <a href="/" data-doc="why-fastreact" class="nav-item active">
+                                Why FastReact?
+                            </a>
+                        </li>
+                        <li>
+                            <a href="?doc=get-started" data-doc="get-started" class="nav-item">
+                                Quickstart
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">Deployment</h3>
+                    <ul class="nav-list">
+                        <li>
+                            <a href="?doc=deploy-vercel" data-doc="deploy-vercel" class="nav-item">
+                                Deploy to Vercel
+                            </a>
+                        </li>
+                        <li>
+                            <a href="?doc=deploy-modal" data-doc="deploy-modal" class="nav-item">
+                                Deploy to Modal
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">Features</h3>
+                    <ul class="nav-list">
+                        <li>
+                            <a href="?doc=add-ai" data-doc="add-ai" class="nav-item">
+                                Add AI Features
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main content -->
+        <main class="main-content">
+            <article id="doc-content" class="doc-content">
+                <!-- Content loaded dynamically -->
+                <div class="loading">Loading documentation...</div>
+            </article>
+
+            <!-- Prev/Next navigation -->
+            <nav id="doc-nav" class="doc-nav">
+                <!-- Navigation loaded dynamically -->
+            </nav>
+        </main>
+    </div>
+
+    <!-- Mobile sidebar toggle -->
+    <button class="sidebar-toggle" aria-label="Toggle sidebar">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12h18M3 6h18M3 18h18"/>
+        </svg>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+    <script src="docs.js"></script>
+</body>
+</html>

@@ -15,6 +15,170 @@ const banner = `
   ${pc.cyan("╰─────────────────────────────────────────╯")}
 `;
 
+// =============================================================================
+// Claude Code CLI Setup
+// =============================================================================
+
+function isClaudeCodeInstalled(): boolean {
+  try {
+    execSync("claude --version", { stdio: ["pipe", "pipe", "pipe"] });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function isClaudeCodeLoggedIn(): boolean {
+  try {
+    // Check if claude can run - if it prompts for login, it will fail
+    const result = execSync("claude --version", { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] });
+    // If we get a version string, Claude Code is installed and working
+    return result.includes("Claude Code");
+  } catch {
+    return false;
+  }
+}
+
+async function ensureClaudeCode(): Promise<boolean> {
+  // Check if Claude Code is installed
+  if (!isClaudeCodeInstalled()) {
+    console.log(pc.red("  ✖"), "Claude Code CLI not found");
+    console.log();
+    console.log(pc.dim("  Claude Code is required for the AI coding agent."));
+    console.log(pc.dim("  Install: npm install -g @anthropic-ai/claude-code"));
+    console.log(pc.dim("  Or visit: https://docs.anthropic.com/en/docs/claude-code"));
+    return false;
+  }
+
+  // Check if logged in (Claude Code works)
+  if (!isClaudeCodeLoggedIn()) {
+    console.log(pc.yellow("  ⚠"), "Claude Code not authenticated");
+    console.log();
+    console.log(pc.dim("  Run 'claude' in your terminal and complete the login flow."));
+    return false;
+  }
+
+  console.log(pc.green("  ✔"), "Claude Code authenticated");
+  return true;
+}
+
+// =============================================================================
+// Vercel CLI Setup
+// =============================================================================
+
+function isVercelInstalled(): boolean {
+  try {
+    execSync("vercel --version", { stdio: ["pipe", "pipe", "pipe"] });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function getVercelUsername(): string | null {
+  try {
+    const output = execSync("vercel whoami", { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }).trim();
+    return output || null;
+  } catch {
+    return null;
+  }
+}
+
+async function installVercel(): Promise<boolean> {
+  console.log(pc.dim("  Installing Vercel CLI..."));
+
+  const result = spawnSync("npm", ["install", "-g", "vercel"], {
+    stdio: "inherit",
+  });
+
+  if (result.status === 0) {
+    console.log(pc.green("  ✔"), "Vercel CLI installed");
+    return true;
+  } else {
+    console.log(pc.red("  ✖"), "Failed to install Vercel CLI");
+    console.log(pc.dim("    Try manually: npm install -g vercel"));
+    return false;
+  }
+}
+
+async function loginVercel(): Promise<boolean> {
+  console.log(pc.dim("  Opening browser for Vercel login..."));
+  console.log();
+
+  const result = spawnSync("vercel", ["login"], {
+    stdio: "inherit",
+  });
+
+  if (result.status === 0) {
+    const username = getVercelUsername();
+    if (username) {
+      console.log();
+      console.log(pc.green("  ✔"), `Logged in as ${pc.cyan(username)}`);
+      return true;
+    }
+  }
+
+  console.log(pc.red("  ✖"), "Vercel login failed");
+  return false;
+}
+
+async function ensureVercel(): Promise<string | null> {
+  // Check if Vercel is installed
+  if (!isVercelInstalled()) {
+    console.log(pc.yellow("  ⚠"), "Vercel CLI not found");
+    console.log();
+
+    const { install } = await prompts({
+      type: "confirm",
+      name: "install",
+      message: "Install Vercel CLI now?",
+      initial: true,
+    });
+
+    if (!install) {
+      console.log();
+      console.log(pc.dim("  Vercel is required for frontend deployment."));
+      console.log(pc.dim("  Install manually: npm install -g vercel"));
+      return null;
+    }
+
+    console.log();
+    if (!await installVercel()) {
+      return null;
+    }
+    console.log();
+  }
+
+  // Check if logged in
+  let username = getVercelUsername();
+  if (!username) {
+    console.log(pc.yellow("  ⚠"), "Not logged in to Vercel");
+    console.log();
+
+    const { login } = await prompts({
+      type: "confirm",
+      name: "login",
+      message: "Log in to Vercel now?",
+      initial: true,
+    });
+
+    if (!login) {
+      console.log();
+      console.log(pc.dim("  Vercel account required for frontend deployment."));
+      console.log(pc.dim("  Log in manually: vercel login"));
+      return null;
+    }
+
+    console.log();
+    if (!await loginVercel()) {
+      return null;
+    }
+
+    username = getVercelUsername();
+  }
+
+  return username;
+}
 
 function validateProjectName(name: string): string | true {
   if (!name) return "Project name is required";
@@ -145,14 +309,35 @@ async function ensureModal(): Promise<string | null> {
 async function main() {
   console.log(banner);
 
+  // Check all prerequisites before starting
+  console.log(pc.bold("  Checking prerequisites..."));
+  console.log();
+
+  // Ensure Claude Code is installed and logged in
+  const claudeReady = await ensureClaudeCode();
+  if (!claudeReady) {
+    console.log(pc.red("\nClaude Code setup required. Exiting."));
+    process.exit(1);
+  }
+
   // Ensure Modal is installed and logged in
   const modalUsername = await ensureModal();
   if (!modalUsername) {
     console.log(pc.red("\nModal setup required. Exiting."));
     process.exit(1);
   }
+  console.log(pc.green("  ✔"), `Modal authenticated (${pc.cyan(modalUsername)})`);
 
-  console.log(pc.dim(`  Modal username: ${pc.cyan(modalUsername)}`));
+  // Ensure Vercel is installed and logged in
+  const vercelUsername = await ensureVercel();
+  if (!vercelUsername) {
+    console.log(pc.red("\nVercel setup required. Exiting."));
+    process.exit(1);
+  }
+  console.log(pc.green("  ✔"), `Vercel authenticated (${pc.cyan(vercelUsername)})`);
+
+  console.log();
+  console.log(pc.green("  All prerequisites ready!"));
   console.log();
 
   // Step 1: Project name

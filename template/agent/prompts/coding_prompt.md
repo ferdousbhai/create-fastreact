@@ -24,7 +24,7 @@ cat app_spec.md
 ## Step 2: Verify Before Building
 
 If there are passing features, verify 1-2 core ones still work:
-- Start dev servers: `./init.sh` or manually
+- Run `pnpm run dev` from project root
 - Test a key user flow through the UI
 - If anything is broken, fix it BEFORE new work
 
@@ -46,10 +46,8 @@ cd frontend && pnpm dlx shadcn@latest add <component-name>
 
 ## Step 5: Test Thoroughly
 
-1. Start dev servers if not running:
-   - Frontend: `cd frontend && pnpm run dev` (http://localhost:5173)
-   - Backend: `cd backend && modal serve modal_app.py`
-2. Verify the feature works per its `steps` array
+1. Run `pnpm run dev` from project root (if not running)
+2. Verify the feature works per its `steps` array at http://localhost:5173
 3. Check browser console for errors
 4. Test edge cases
 
