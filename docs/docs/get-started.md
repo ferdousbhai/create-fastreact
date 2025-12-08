@@ -14,9 +14,9 @@ Before you begin, make sure you have:
 
 - **Node.js 18+** and **pnpm** installed
 - **Python 3.12+** and **uv** installed
-- **One of:**
-  - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (recommended - uses existing subscription), OR
-  - [Anthropic API key](https://console.anthropic.com/) (pay per use)
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed and authenticated
+
+**Note:** The CLI will guide you through Modal and Vercel installation and authentication during project setup.
 
 Don't have these yet? Here's how to get them:
 
@@ -28,8 +28,6 @@ npm install -g pnpm
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-**Note:** The CLI will guide you through Modal installation and authentication during project setup.
-
 ## Create Your Project
 
 Run the create command and follow the prompts:
@@ -38,9 +36,8 @@ Run the create command and follow the prompts:
 pnpm create fastreact my-app
 ```
 
-You'll be prompted for:
+The CLI first verifies all prerequisites are ready (Claude Code, Modal, Vercel), then prompts for:
 - **Project name** - Your app's name
-- **Modal username** - Auto-detected if logged in
 - **App description** - Describe what you want to build in plain English
 - **Proxy auth tokens** - Optional, for production security
 
@@ -67,9 +64,7 @@ This is where the magic happens. The AI agent reads your app description and bui
 uv run agent
 ```
 
-The agent auto-detects your auth method:
-1. **Claude Code** installed → uses existing subscription (no extra cost)
-2. **ANTHROPIC_API_KEY** set → uses API directly
+The agent uses your Claude Code authentication.
 
 ### What the Agent Does
 
@@ -435,16 +430,6 @@ Let's recap what you accomplished:
 - **Connected frontend to backend** via API calls
 
 ## Configuring the Agent
-
-### Environment Variables
-
-For `--api` mode only (Claude Code handles its own config):
-
-```bash
-ANTHROPIC_API_KEY=sk-ant-...
-FASTREACT_INITIALIZER_MODEL=claude-opus-4-5-20251101  # optional
-FASTREACT_CODING_MODEL=claude-sonnet-4-5-20250929    # optional, saves costs
-```
 
 ### Customizing Prompts
 

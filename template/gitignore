@@ -24,6 +24,9 @@ build/
 # Modal
 .modal/
 
+# Agent logs
+.fastreact-agent/
+
 # Lock files (optional - can be committed)
 # pnpm-lock.yaml
 # uv.lock

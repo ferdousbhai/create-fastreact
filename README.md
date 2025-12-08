@@ -28,8 +28,9 @@ Based on [Anthropic's autonomous coding architecture](https://www.anthropic.com/
 - [pnpm](https://pnpm.io/)
 - [Python](https://www.python.org/) 3.12+
 - [uv](https://docs.astral.sh/uv/) (Python package manager)
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (logged in)
 - [Modal CLI](https://modal.com/docs/guide) (logged in)
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (uses your existing subscription)
+- [Vercel CLI](https://vercel.com/docs/cli) (logged in)
 
 ## Quick Start
 
@@ -38,9 +39,8 @@ Based on [Anthropic's autonomous coding architecture](https://www.anthropic.com/
 pnpm create fastreact my-app
 ```
 
-You'll be prompted for:
+The CLI verifies prerequisites (Claude Code, Modal, Vercel), then prompts for:
 - Project name
-- Modal username (auto-detected)
 - App description (plain English)
 - Proxy auth tokens (optional)
 

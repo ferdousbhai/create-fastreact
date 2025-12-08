@@ -59,7 +59,7 @@ FastReact combines the best tools for each job:
 |-------|------------|-----|
 | Frontend | React + Vite + TypeScript | Mature ecosystem, great DX |
 | Backend | FastAPI + Python | Full Python library access |
-| AI Agent | Claude Code / API | Autonomous feature development |
+| AI Agent | Claude Code | Autonomous feature development |
 | Deploy (Frontend) | Vercel | Edge network, zero config |
 | Deploy (Backend) | Modal | Serverless Python, GPU support |
 
@@ -79,7 +79,7 @@ FastReact combines the best tools for each job:
 │   (Edge Network)   │   (Serverless)     │
 ├────────────────────┴────────────────────┤
 │            AI Coding Agent              │
-│    Claude Code / Anthropic API          │
+│           Claude Code CLI               │
 │  Autonomous feature implementation      │
 └─────────────────────────────────────────┘
 ```
