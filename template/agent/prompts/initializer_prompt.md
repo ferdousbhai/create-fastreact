@@ -1,6 +1,6 @@
 # Initializer Session
 
-You are starting a NEW FastReact project. Your task is to analyze the app description, verify services, and create a comprehensive feature list.
+You are starting a NEW FastReact project. Your task is to analyze the app, set up configuration, and create a feature list.
 
 ## Step 1: Read the App Specification
 
@@ -11,16 +11,136 @@ Read `app_spec.md` to understand what the user wants to build.
 Before proceeding, verify Modal CLI is authenticated:
 
 ```bash
-# Check Modal authentication
 modal token show
 ```
 
 **If NOT authenticated:**
-1. Run `modal token new` to authenticate
+1. Run `modal token new` to authenticate (opens browser)
 2. If that fails, document in `claude-progress.txt` and warn the user
-3. Do NOT proceed with backend features until Modal is authenticated
+3. Do NOT proceed until Modal is authenticated
 
-## Step 3: Set Up Puppeteer MCP for Browser Testing
+## Step 3: Generate Frontend Environment File
+
+Create `frontend/.env.local` with the required variables for the user to fill in:
+
+```bash
+cat > frontend/.env.local << 'EOF'
+# =============================================================================
+# REQUIRED: Fill in these values before continuing
+# =============================================================================
+
+# Modal Proxy Auth Token (REQUIRED)
+# Create at: https://modal.com/settings/proxy-auth-tokens
+# Click "Create new token" and copy both values below
+VITE_MODAL_KEY=
+VITE_MODAL_SECRET=
+
+# Backend API URL (will be set automatically after modal serve)
+VITE_API_URL=
+EOF
+```
+
+## Step 4: Identify Required Backend Secrets
+
+Read `app_spec.md` and identify what backend secrets are needed. Common patterns:
+- AI/LLM features → `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`
+- Database → `DATABASE_URL`
+- Payments → `STRIPE_KEY`, `STRIPE_SECRET`
+- Auth providers → `AUTH_SECRET`, OAuth credentials
+- Email → `SENDGRID_API_KEY`, `RESEND_API_KEY`
+
+
+## Step 5: Check Existing Modal Secrets
+
+Check what secrets already exist:
+
+```bash
+modal secret list
+```
+
+Check if the project secret exists and what keys it contains:
+
+```bash
+modal secret list | grep <project-name>-secrets
+```
+
+## Step 6: Notify User of Required Configuration
+
+Tell the user what they need to set up. Be specific about what's missing:
+
+> **Configuration Required**
+>
+> Please complete the following before I can proceed:
+>
+> **1. Frontend Auth (`frontend/.env.local`):**
+> - Go to https://modal.com/settings/proxy-auth-tokens
+> - Create a new token
+> - Fill in `VITE_MODAL_KEY` and `VITE_MODAL_SECRET`
+>
+> **2. Backend Secrets (Modal):**
+> Your app requires these secrets. Create them at https://modal.com/secrets or via CLI:
+> ```bash
+> modal secret create <project-name>-secrets \
+>   OPENAI_API_KEY="your-key" \
+>   OTHER_SECRET="value"
+> ```
+>
+> Required secrets:
+> - `OPENAI_API_KEY`: For AI features
+> - *(list others identified from app_spec.md)*
+>
+> Let me know when you've completed this setup.
+
+**STOP HERE and wait for the user to confirm.**
+
+## Step 7: Validate Configuration
+
+After the user confirms:
+
+### 7a. Validate Frontend Environment
+
+```bash
+cat frontend/.env.local
+```
+
+Verify `VITE_MODAL_KEY` and `VITE_MODAL_SECRET` are not empty.
+
+### 7b. Validate Modal Secrets Exist
+
+```bash
+modal secret list | grep <project-name>-secrets
+```
+
+If the secret doesn't exist or is missing required keys, ask the user to create it.
+
+### 7c. Start Backend and Test
+
+Start the backend:
+
+```bash
+cd backend && modal serve modal_app.py
+```
+
+Capture the URL from output (e.g., `https://workspace--project-backend-fastapi-app-dev.modal.run`)
+
+Update `frontend/.env.local` with the URL:
+
+```bash
+sed -i 's|VITE_API_URL=.*|VITE_API_URL=<modal-url>|' frontend/.env.local
+```
+
+Test the connection with auth:
+
+```bash
+MODAL_KEY=$(grep VITE_MODAL_KEY frontend/.env.local | cut -d= -f2)
+MODAL_SECRET=$(grep VITE_MODAL_SECRET frontend/.env.local | cut -d= -f2)
+
+curl -H "Modal-Key: $MODAL_KEY" -H "Modal-Secret: $MODAL_SECRET" <modal-url>/api/health
+```
+
+If this returns `{"status": "ok"}`, configuration is complete. If you get a 401 error, ask the user to verify their proxy auth token values.
+
+## Step 8: Set Up Puppeteer MCP for Browser Testing
 
 Update `.mcp.json` to enable browser automation:
 
@@ -35,45 +155,23 @@ Update `.mcp.json` to enable browser automation:
 }
 ```
 
-This enables UI verification through actual browser interactions.
-
-## Step 4: Create init.sh
-
-Create `init.sh` to set up the development environment:
+## Step 9: Install Frontend Dependencies
 
 ```bash
-#!/bin/bash
-set -e
-
-echo "Setting up FastReact development environment..."
-
-# Install frontend dependencies
-cd frontend
-pnpm install
-cd ..
-
-# Start development servers
-echo ""
-echo "Starting development servers..."
-echo "  Frontend: http://localhost:5173"
-echo "  Backend:  modal serve backend/modal_app.py"
-echo ""
-
-# Start frontend in background
-cd frontend && pnpm run dev &
-FRONTEND_PID=$!
-
-# Start backend
-cd ../backend && modal serve modal_app.py &
-BACKEND_PID=$!
-
-echo "Servers started. Press Ctrl+C to stop."
-wait
+cd frontend && pnpm install && cd ..
 ```
 
-Make it executable: `chmod +x init.sh`
+## Step 10: Start Frontend and Verify
 
-## Step 5: Create feature_list.json
+```bash
+cd frontend && pnpm run dev
+```
+
+Frontend will be available at http://localhost:5173
+
+Verify the connection works by checking the browser console for any errors.
+
+## Step 11: Create feature_list.json
 
 Based on the app description, create `feature_list.json` as a flat array:
 
@@ -90,7 +188,6 @@ Based on the app description, create `feature_list.json` as a flat array:
 
 ### Standard Categories for FastReact
 
-Use these categories to organize features:
 - `backend-api` - FastAPI endpoints on Modal
 - `frontend-ui` - React components and pages
 - `state` - State management and data flow
@@ -111,30 +208,24 @@ Use these categories to organize features:
 Always include these foundational features first:
 1. Health check endpoint at `/api/health`
 2. Root App component renders without errors
-3. Frontend can connect to backend API
+3. Frontend can connect to backend API (with auth)
 
-## Step 6: Set Up Project Structure
-
-Ensure the basic structure exists:
-- `frontend/src/` - React source files
-- `backend/` - FastAPI on Modal
-- `agent/prompts/` - Agent prompts
-
-## Step 7: Initial Commit
+## Step 12: Initial Commit
 
 ```bash
 git add -A
-git commit -m "Initialize project with feature_list.json and dev setup"
+git commit -m "Initialize project with feature_list.json and configuration"
 ```
 
-## Step 8: Update Progress Notes
+## Step 13: Update Progress Notes
 
 Write to `claude-progress.txt`:
-- Modal authentication status
+- Modal authentication: Verified
+- Proxy auth token: Configured and tested
+- Modal secrets: <list what's configured>
 - Summary of planned features
 - Recommended implementation order
-- Any assumptions made
 
 ---
 
-**IMPORTANT**: Do NOT implement any features yet. Just create the plan and setup files.
+**IMPORTANT**: Do NOT implement any features yet. Just set up configuration and create the plan files.

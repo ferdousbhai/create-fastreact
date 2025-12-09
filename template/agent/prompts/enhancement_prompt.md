@@ -44,6 +44,56 @@ modal token show
 
 If not authenticated, run `modal token new`.
 
+## Step 3b: Check for New Secret Requirements
+
+Read the new requirements in `app_spec.md` and identify if they require additional secrets.
+
+Common patterns:
+- New AI features → may need additional API keys
+- New integrations → may need service credentials
+- New payment features → may need payment provider keys
+
+If new secrets are needed:
+
+### 1. Check existing Modal secrets
+
+```bash
+modal secret list | grep <project-name>-secrets
+```
+
+### 2. Notify user to add missing secrets
+
+Tell the user:
+
+> The new features require additional secrets. Please update your Modal secret:
+>
+> ```bash
+> modal secret create <project-name>-secrets \
+>   EXISTING_KEY="keep-existing-value" \
+>   NEW_SECRET_KEY="new-value" \
+>   ANOTHER_KEY="new-value"
+> ```
+>
+> **Note:** `modal secret create` replaces the entire secret, so include all existing values plus the new ones.
+>
+> New secrets needed:
+> - `NEW_SECRET_KEY`: (description of what it's for)
+> - `ANOTHER_KEY`: (description)
+>
+> Let me know when you've updated the Modal secret.
+
+**STOP and wait for user confirmation.**
+
+### 3. Validate secrets exist
+
+After user confirms:
+
+```bash
+modal secret list | grep <project-name>-secrets
+```
+
+If the secret exists, proceed. If not, ask the user to create it.
+
 ## Step 4: Append New Features to feature_list.json
 
 **CRITICAL: You must PRESERVE all existing features!**

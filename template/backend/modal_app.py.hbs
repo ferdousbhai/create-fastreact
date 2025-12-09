@@ -10,10 +10,43 @@ image = (
     .run_commands("cd /app && uv pip install --system -r pyproject.toml")
 )
 
+# Secrets for environment variables (API keys, database URLs, etc.)
+# Create with: modal secret create {{projectName}}-secrets OPENAI_API_KEY=your-key
+secrets = modal.Secret.from_name("{{projectName}}-secrets", required_keys=[])
 
-@app.function(image=image)
+
+# =============================================================================
+# Web API (called from frontend via HTTP)
+# =============================================================================
+# This is the only function that needs @modal.asgi_app() decorator.
+# Proxy auth is enabled - frontend must include Modal-Key and Modal-Secret headers.
+
+@app.function(image=image, secrets=[secrets])
 @modal.asgi_app(requires_proxy_auth=True)
 def fastapi_app():
     from app.main import app
 
     return app
+
+
+# =============================================================================
+# Internal Functions (called from backend via .remote())
+# =============================================================================
+# Add additional Modal functions here for background tasks, heavy compute, etc.
+# These are NOT exposed as web endpoints - call them from FastAPI routes using .remote()
+#
+# Example:
+#
+# @app.function(image=image, gpu="A10G")
+# def process_with_gpu(data: dict) -> dict:
+#     # Heavy GPU computation
+#     return {"result": "processed"}
+#
+# Then in main.py:
+#
+# from modal_app import process_with_gpu
+#
+# @app.post("/api/process")
+# async def process(data: dict):
+#     result = process_with_gpu.remote(data)  # Runs on separate Modal container
+#     return result

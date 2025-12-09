@@ -27,14 +27,35 @@ cat app_spec.md
 
 ## Step 2: Start Servers (If Not Running)
 
-If `init.sh` exists, run it:
+Start backend first (runs on Modal with proxy auth):
 ```bash
-chmod +x init.sh && ./init.sh
+cd backend && modal serve modal_app.py
 ```
 
-Otherwise start manually:
-- Frontend: `cd frontend && pnpm run dev`
-- Backend: `cd backend && modal serve modal_app.py`
+**Capture the Modal URL** from output (e.g., `https://workspace--app-backend-fastapi-app-dev.modal.run`)
+
+Check if `frontend/.env.local` has the correct configuration:
+```bash
+cat frontend/.env.local
+```
+
+The file should contain:
+- `VITE_API_URL` - The Modal backend URL
+- `VITE_MODAL_KEY` - Proxy auth token ID
+- `VITE_MODAL_SECRET` - Proxy auth token secret
+
+If the Modal URL changed (happens on restart), update it:
+```bash
+# Preserve existing auth keys, just update the URL
+sed -i 's|VITE_API_URL=.*|VITE_API_URL=<new-modal-url>|' frontend/.env.local
+```
+
+Then start frontend:
+```bash
+cd frontend && pnpm run dev
+```
+
+**Troubleshooting auth errors:** If you see 401 errors in the browser console, verify the `VITE_MODAL_KEY` and `VITE_MODAL_SECRET` values in `.env.local` match the token created at https://modal.com/settings/proxy-auth-tokens
 
 ## Step 3: Verification Test (CRITICAL!)
 

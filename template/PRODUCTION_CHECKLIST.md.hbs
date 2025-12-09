@@ -1,0 +1,55 @@
+# Production Verification Checklist for {{projectName}}
+
+Use this checklist to verify your production deployment is working correctly.
+
+## Pre-Deployment Verification
+
+- [ ] All features in `feature_list.json` have `"passes": true`
+- [ ] App tested locally and working
+- [ ] `frontend/.env.local` contains `VITE_MODAL_KEY` and `VITE_MODAL_SECRET`
+- [ ] Modal secrets configured (if app requires any)
+
+## Post-Deployment Verification
+
+### Backend (Modal)
+
+**Production URL:** ____________________________________
+
+- [ ] Health endpoint returns 200: `curl -H "Modal-Key: $KEY" -H "Modal-Secret: $SECRET" <url>/api/health`
+- [ ] API endpoints respond correctly
+- [ ] No errors in Modal dashboard logs
+
+### Frontend (Vercel)
+
+**Production URL:** ____________________________________
+
+- [ ] Site loads without errors
+- [ ] No console errors in browser DevTools
+- [ ] Environment variables configured:
+  - [ ] `VITE_API_URL` points to Modal production URL
+  - [ ] `VITE_MODAL_KEY` is set
+  - [ ] `VITE_MODAL_SECRET` is set
+
+### Integration
+
+- [ ] API calls from frontend reach Modal backend
+- [ ] Authentication works (no 401 errors)
+- [ ] All core user flows work in production
+
+## Troubleshooting
+
+### 401 Unauthorized
+
+1. Verify proxy auth token is valid at https://modal.com/settings/proxy-auth-tokens
+2. Check Vercel environment variables match the token values
+3. Redeploy frontend: `cd frontend && vercel --prod`
+
+### API Calls to Wrong URL
+
+1. Check `VITE_API_URL` in Vercel (should be production URL without `-dev`)
+2. Ensure no trailing slash
+3. Redeploy frontend: `cd frontend && vercel --prod`
+
+---
+
+Deployment completed on: ____________

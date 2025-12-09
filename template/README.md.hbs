@@ -5,6 +5,7 @@ A full-stack app built with [fastreact](https://www.npmjs.com/package/create-fas
 ## Prerequisites
 
 - [Modal CLI](https://modal.com/docs/guide) installed and logged in (`modal token new`)
+- [Modal Proxy Auth Token](https://modal.com/settings/proxy-auth-tokens) created
 
 ## Stack
 
@@ -15,6 +16,20 @@ A full-stack app built with [fastreact](https://www.npmjs.com/package/create-fas
 
 **Backend**
 - FastAPI on Modal (serverless)
+- Proxy authentication enabled
+
+## Setup
+
+Before starting development, you need:
+
+1. **Modal CLI authentication**: `modal token new`
+2. **Proxy auth token**: Create at https://modal.com/settings/proxy-auth-tokens
+3. **Configure frontend**: Add to `frontend/.env.local`:
+   ```
+   VITE_MODAL_KEY=<token-id>
+   VITE_MODAL_SECRET=<token-secret>
+   VITE_API_URL=<modal-serve-url>
+   ```
 
 ## Development
 
@@ -24,28 +39,25 @@ pnpm run dev
 
 This starts both:
 - **Frontend**: http://localhost:5173
-- **Backend**: Modal serve (URL configured in `frontend/.env.local`)
+- **Backend**: Modal serve (with proxy auth)
 
-## Deployment
+The backend runs on Modal's infrastructure. The URL changes each time you restart `modal serve` - update `VITE_API_URL` in `frontend/.env.local` if needed.
 
-### Backend → Modal
+## Production Deployment
 
-```bash
-cd backend
-modal deploy modal_app.py
-```
+Deployment is automated via the agent. When all features pass, run a deployment session.
 
-### Frontend → Vercel
+For manual verification, see **[PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md)**
 
-```bash
-cd frontend
-vercel
-```
+## Security
 
-Set environment variables in Vercel:
-- `VITE_API_URL` - Your Modal production URL (without `-dev`)
-- `VITE_MODAL_KEY` - Your proxy auth token ID
-- `VITE_MODAL_SECRET` - Your proxy auth token secret
+**Proxy authentication is enabled from day 1:**
+
+- **Proxy Auth**: All API requests require `Modal-Key` and `Modal-Secret` headers
+- **CORS**: Allows all origins (security is enforced by proxy auth, not CORS)
+- **Secrets**: Stored in Modal secrets, never in code
+
+The frontend automatically includes auth headers in all API requests when `VITE_MODAL_KEY` and `VITE_MODAL_SECRET` are configured.
 
 ## Using the API
 
@@ -62,11 +74,38 @@ const result = await api("/api/items", {
 });
 ```
 
-## Adding shadcn components
+The `api` helper automatically includes Modal auth headers.
+
+## Adding shadcn Components
 
 ```bash
 cd frontend
 pnpm dlx shadcn@latest add button
+```
+
+## Adding Backend Functions
+
+For functions called from the frontend (HTTP), use `@modal.asgi_app()`:
+
+```python
+# Already configured in modal_app.py
+@app.function(image=image, secrets=[secrets])
+@modal.asgi_app(requires_proxy_auth=True)
+def fastapi_app():
+    from app.main import app
+    return app
+```
+
+For internal functions (called from other backend code), use `.remote()`:
+
+```python
+@app.function(image=image, gpu="A10G")
+def heavy_compute(data: dict) -> dict:
+    # Runs on separate container
+    return {"result": "processed"}
+
+# Call from FastAPI route:
+result = heavy_compute.remote(data)
 ```
 
 ## API Endpoints
