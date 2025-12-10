@@ -1,6 +1,6 @@
 {
   "name": "create-fastreact",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Create fastreact apps with React + FastAPI + Modal",
   "type": "module",
   "bin": {
