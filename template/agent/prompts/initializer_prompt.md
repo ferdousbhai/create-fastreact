@@ -140,28 +140,13 @@ curl -H "Modal-Key: $MODAL_KEY" -H "Modal-Secret: $MODAL_SECRET" <modal-url>/api
 
 If this returns `{"status": "ok"}`, configuration is complete. If you get a 401 error, ask the user to verify their proxy auth token values.
 
-## Step 8: Set Up Puppeteer MCP for Browser Testing
-
-Update `.mcp.json` to enable browser automation:
-
-```json
-{
-  "mcpServers": {
-    "puppeteer-mcp-claude": {
-      "command": "npx",
-      "args": ["-y", "puppeteer-mcp-claude", "serve"]
-    }
-  }
-}
-```
-
-## Step 9: Install Frontend Dependencies
+## Step 8: Install Frontend Dependencies
 
 ```bash
 cd frontend && pnpm install && cd ..
 ```
 
-## Step 10: Start Frontend and Verify
+## Step 9: Start Frontend and Verify
 
 ```bash
 cd frontend && pnpm run dev
@@ -171,7 +156,7 @@ Frontend will be available at http://localhost:5173
 
 Verify the connection works by checking the browser console for any errors.
 
-## Step 11: Create feature_list.json
+## Step 10: Create feature_list.json
 
 Based on the app description, create `feature_list.json` as a flat array:
 
@@ -210,14 +195,14 @@ Always include these foundational features first:
 2. Root App component renders without errors
 3. Frontend can connect to backend API (with auth)
 
-## Step 12: Initial Commit
+## Step 11: Initial Commit
 
 ```bash
 git add -A
 git commit -m "Initialize project with feature_list.json and configuration"
 ```
 
-## Step 13: Update Progress Notes
+## Step 12: Update Progress Notes
 
 Write to `claude-progress.txt`:
 - Modal authentication: Verified

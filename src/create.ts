@@ -150,18 +150,6 @@ ${config.appDescription}
 `;
   writeFileSync(join(targetDir, "claude-progress.txt"), progressContent);
 
-  // Generate .mcp.json for Claude Code MCP servers
-  console.log(pc.dim("  Creating .mcp.json..."));
-  const mcpConfig = {
-    mcpServers: {
-      "puppeteer-mcp-claude": {
-        command: "npx",
-        args: ["-y", "puppeteer-mcp-claude", "serve"]
-      }
-    }
-  };
-  writeFileSync(join(targetDir, ".mcp.json"), JSON.stringify(mcpConfig, null, 2) + "\n");
-
   // Initialize git
   console.log(pc.dim("  Initializing git repository..."));
   try {
