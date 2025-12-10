@@ -1,6 +1,6 @@
 {
   "name": "create-fastreact",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Create fastreact apps with React + FastAPI + Modal",
   "type": "module",
   "bin": {
@@ -12,7 +12,9 @@
   ],
   "scripts": {
     "build": "tsup src/index.ts src/create.ts --format esm --clean --dts",
-    "dev": "tsup src/index.ts src/create.ts --format esm --watch --dts"
+    "dev": "tsup src/index.ts src/create.ts --format esm --watch --dts",
+    "sync-version": "npm version $(git describe --tags --abbrev=0 | sed 's/^v//') --no-git-tag-version --allow-same-version",
+    "prepare": "git config core.hooksPath .githooks"
   },
   "dependencies": {
     "open": "^11.0.0",

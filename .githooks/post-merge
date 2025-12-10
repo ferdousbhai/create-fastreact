@@ -1,0 +1,3 @@
+#!/bin/sh
+# Sync package.json version with latest git tag after pull/merge
+npm run sync-version 2>/dev/null || true
