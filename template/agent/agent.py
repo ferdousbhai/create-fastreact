@@ -405,11 +405,6 @@ def run_agent(
         print("  Run 'pnpm create fastreact' first to initialize the project.")
         sys.exit(1)
 
-    # Ensure .mcp.json exists for Puppeteer MCP
-    mcp_json = project_dir / ".mcp.json"
-    if not mcp_json.exists():
-        mcp_json.write_text('{\n  "mcpServers": {}\n}\n')
-
     # Determine session type
     feature_list_exists = (project_dir / "feature_list.json").exists()
     needs_init = not feature_list_exists
