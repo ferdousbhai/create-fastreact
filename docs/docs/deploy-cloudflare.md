@@ -1,8 +1,8 @@
-# Deploy Frontend to Vercel
+# Deploy Frontend to Cloudflare Pages
 
 Get your FastReact frontend live on the edge in under 5 minutes.
 
-Vercel is purpose-built for frontend frameworks like React + Vite. It provides:
+Cloudflare Pages is a JAMstack platform for deploying frontend applications. It provides:
 
 - **Global edge network** - Your app loads fast everywhere
 - **Automatic HTTPS** - SSL certificates handled for you
@@ -12,12 +12,12 @@ Vercel is purpose-built for frontend frameworks like React + Vite. It provides:
 ## Prerequisites
 
 - A FastReact project (run `pnpm create fastreact my-app` if you haven't)
-- A [Vercel account](https://vercel.com/signup) (free tier works great)
-- Your code pushed to GitHub, GitLab, or Bitbucket
+- A [Cloudflare account](https://dash.cloudflare.com/sign-up) (free tier works great)
+- Your code pushed to GitHub or GitLab
 
-## Option 1: Deploy via Vercel Dashboard
+## Option 1: Deploy via Cloudflare Dashboard
 
-The easiest way to deploy is through the Vercel web interface.
+The easiest way to deploy is through the Cloudflare web interface.
 
 ### Step 1: Push to Git
 
@@ -31,97 +31,95 @@ git remote add origin https://github.com/yourusername/my-app.git
 git push -u origin main
 ```
 
-### Step 2: Import to Vercel
+### Step 2: Create a Cloudflare Pages Project
 
-1. Go to [vercel.com/new](https://vercel.com/new)
-2. Click "Import" next to your repository
-3. **Important:** Set the Root Directory to `frontend`
-4. Vercel auto-detects Vite—no build settings needed
-5. Click "Deploy"
+1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com/) > Pages
+2. Click "Create a project" > "Connect to Git"
+3. Authorize Cloudflare to access your GitHub/GitLab account
+4. Select your repository
 
-That's it. In about 30 seconds, your frontend is live.
+### Step 3: Configure Build Settings
 
-### Step 3: Configure Environment Variables
+Configure the following build settings:
+
+- **Project name**: `my-app` (or your preferred name)
+- **Production branch**: `main`
+- **Root directory**: `frontend`
+- **Build command**: `pnpm build`
+- **Build output directory**: `dist`
+
+Click "Save and Deploy".
+
+That's it. In about 30 seconds, your frontend is live at `https://my-app.pages.dev`.
+
+### Step 4: Configure Environment Variables
 
 Your frontend needs to know where your backend lives and have credentials to authenticate. After deploying your backend to Modal (see [Deploy Backend to Modal](?doc=deploy-modal)), add these environment variables:
 
-1. Go to your project settings in Vercel
-2. Click "Environment Variables"
-3. Add the following:
+1. Go to your project in Cloudflare Pages
+2. Click "Settings" > "Environment variables"
+3. Click "Add variable" and add the following for **Production**:
    - `VITE_API_URL` = `https://yourusername--my-app-backend-fastapi-app.modal.run`
    - `VITE_MODAL_KEY` = your proxy auth token ID (`wk-xxx`)
    - `VITE_MODAL_SECRET` = your proxy auth token secret (`ws-xxx`)
-4. Redeploy for changes to take effect
+4. Click "Save"
+5. Trigger a new deployment for changes to take effect
 
 **Note:** Get your proxy auth tokens from [modal.com/settings/proxy-auth-tokens](https://modal.com/settings/proxy-auth-tokens).
 
-## Option 2: Deploy via CLI
+## Option 2: Deploy via Wrangler CLI
 
-Prefer the command line? Use the Vercel CLI.
+Prefer the command line? Use the Wrangler CLI.
 
-### Step 1: Install Vercel CLI
+### Step 1: Install Wrangler CLI
 
 ```bash
-pnpm add -g vercel
+npm install -g wrangler
 ```
 
-### Step 2: Deploy
+### Step 2: Log in to Cloudflare
+
+```bash
+wrangler login
+```
+
+This opens your browser to authenticate with Cloudflare.
+
+### Step 3: Build and Deploy
 
 From your project root:
 
 ```bash
 cd frontend
-vercel
+pnpm build
+wrangler pages deploy dist --project-name=my-app
 ```
 
-The CLI will ask a few questions:
+The CLI will create the project if it doesn't exist and deploy your app.
 
-```
-? Set up and deploy "my-app/frontend"? Yes
-? Which scope do you want to deploy to? Your Account
-? Link to existing project? No
-? What's your project's name? my-app
-? In which directory is your code located? ./
-```
-
-Vercel detects Vite automatically and deploys.
-
-### Step 3: Deploy to Production
-
-The first deploy creates a preview URL. To deploy to production:
+### Step 4: Set Environment Variables
 
 ```bash
-vercel --prod
+# Set production environment variables
+wrangler pages secret put VITE_API_URL --project-name=my-app
+# Enter your Modal production URL when prompted
+
+wrangler pages secret put VITE_MODAL_KEY --project-name=my-app
+# Enter your proxy auth token ID when prompted
+
+wrangler pages secret put VITE_MODAL_SECRET --project-name=my-app
+# Enter your proxy auth token secret when prompted
 ```
 
-## Update Vite Config for Production
+### Step 5: Redeploy with Environment Variables
 
-Your `frontend/vite.config.ts` needs to handle both development and production API URLs.
-
-Update it to use environment variables:
-
-```typescript
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
-
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  resolve: {
-    alias: {
-      "@": "/src",
-    },
-  },
-  server: {
-    proxy: {
-      "/api": {
-        target: "http://localhost:8000",
-        changeOrigin: true,
-      },
-    },
-  },
-});
+```bash
+cd frontend
+pnpm build
+wrangler pages deploy dist --project-name=my-app
 ```
+
+## How Environment Variables Work
 
 Your FastReact project already includes `frontend/src/lib/api.ts` which handles both the API URL and Modal authentication:
 
@@ -169,23 +167,24 @@ const data = await api<{ message: string }>("/api/hello");
 
 ## Set Up Automatic Deployments
 
-Once connected to git, Vercel automatically deploys:
+Once connected to git, Cloudflare Pages automatically deploys:
 
 - **Production deploys** when you push to `main`
 - **Preview deploys** for every pull request
 
-Each preview gets a unique URL like `my-app-git-feature-branch-yourname.vercel.app`.
+Each preview gets a unique URL like `abc123.my-app.pages.dev`.
 
 ## Custom Domain
 
 Want to use your own domain?
 
-1. Go to your project settings in Vercel
-2. Click "Domains"
-3. Add your domain (e.g., `myapp.com`)
-4. Update your DNS records as instructed
+1. Go to your project in Cloudflare Pages
+2. Click "Custom domains"
+3. Click "Set up a custom domain"
+4. Add your domain (e.g., `myapp.com`)
+5. Update your DNS records as instructed
 
-Vercel provisions SSL automatically.
+Cloudflare provisions SSL automatically.
 
 ## Verify Your Deployment
 
@@ -199,7 +198,7 @@ If API calls fail, check:
 - The `VITE_API_URL` environment variable is set correctly
 - The `VITE_MODAL_KEY` and `VITE_MODAL_SECRET` are set correctly
 - Your Modal backend is deployed and running
-- CORS is configured to allow your Vercel domain
+- CORS is configured to allow your Cloudflare domain
 
 ## Next Steps
 
@@ -210,4 +209,4 @@ Your frontend is live! Now deploy your backend:
 
 ---
 
-**Tip:** Enable Vercel Analytics to monitor your frontend performance. It's free for hobby projects and gives you Core Web Vitals tracking.
+**Tip:** Cloudflare Pages includes Web Analytics for free. Enable it in your project settings to monitor traffic and performance.

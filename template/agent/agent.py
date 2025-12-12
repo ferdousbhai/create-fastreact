@@ -4,10 +4,12 @@ FastReact Autonomous Coding Agent
 =================================
 
 Two-phase autonomous coding agent:
-1. Initializer: Reads app_spec.md and generates feature_list.json
+1. Initializer: Reads instructions and generates/updates feature_list.json
 2. Coder: Implements features from feature_list.json incrementally
 
-Supports enhancement mode for adding features to existing projects.
+Commands:
+  uv run agent [INSTRUCTIONS]  # Run initializer + coding (reads app_spec.md or uses INSTRUCTIONS)
+  uv run agent --continue      # Skip initializer, only code existing features
 
 Runs via Claude Code CLI using your existing Claude Code authentication.
 
@@ -125,12 +127,13 @@ def save_feature_list(project_dir: Path, features: list) -> None:
 
 
 def validate_feature_changes(
-    before: list | None, after: list | None
+    before: list | None, after: list | None, allow_additions: bool = True
 ) -> tuple[bool, str]:
     """
     Validate that feature_list.json changes follow the rules:
     - Features cannot be removed
     - Feature descriptions cannot be modified
+    - New features can only be added if allow_additions=True
 
     Returns (is_valid, error_message).
     """
@@ -149,6 +152,13 @@ def validate_feature_changes(
         # Truncate long descriptions in error message
         removed_short = {d[:60] + "..." if len(d) > 60 else d for d in removed}
         return False, f"Features were removed or modified: {removed_short}"
+
+    # Check for additions when not allowed
+    if not allow_additions:
+        added = after_descriptions - before_descriptions
+        if added:
+            added_short = {d[:60] + "..." if len(d) > 60 else d for d in added}
+            return False, f"New features added in --continue mode: {added_short}"
 
     return True, ""
 
@@ -383,43 +393,81 @@ def run_session(
 # Main Agent Loop
 # =============================================================================
 
+def get_or_create_app_spec(project_dir: Path, cli_instructions: str | None) -> str | None:
+    """
+    Get instructions from app_spec.md, or create it from CLI instructions.
+    Returns None if no instructions available.
+    """
+    app_spec_file = project_dir / "app_spec.md"
+
+    # If CLI instructions provided, create/update app_spec.md
+    if cli_instructions:
+        app_spec_content = f"# App Specification\n\n{cli_instructions}\n"
+        app_spec_file.write_text(app_spec_content)
+        print(f"  Created app_spec.md from instructions")
+        return cli_instructions
+
+    # Otherwise read from existing file
+    if app_spec_file.exists():
+        return app_spec_file.read_text()
+
+    return None
+
+
 def run_agent(
     project_dir: Path,
+    instructions: str | None = None,
+    continue_mode: bool = False,
     max_iterations: int | None = None,
     timeout: int = DEFAULT_TIMEOUT,
     verbose: bool = False,
-    enhance: bool = False,
 ):
-    """Run the autonomous coding agent."""
+    """
+    Run the autonomous coding agent.
+
+    Args:
+        project_dir: Path to the project root
+        instructions: App instructions (from CLI or app_spec.md)
+        continue_mode: If True, skip initializer and only code existing features
+        max_iterations: Maximum number of sessions to run
+        timeout: Timeout per session in seconds
+        verbose: Stream output in real-time
+    """
     project_dir = project_dir.resolve()
 
     print(f"\n  Project: {project_dir}")
-    print(f"  Mode: {'Enhancement' if enhance else 'Standard'}")
+    print(f"  Mode: {'Continue (existing features only)' if continue_mode else 'Full (initializer + coding)'}")
     print(f"  Timeout: {timeout}s per session")
     if verbose:
         print("  Output: Verbose (streaming)")
 
-    # Check for app_spec.md
-    if not (project_dir / "app_spec.md").exists():
-        print("\n  app_spec.md not found!")
-        print("  Run 'pnpm create fastreact' first to initialize the project.")
-        sys.exit(1)
-
-    # Determine session type
+    # Check feature_list.json for --continue mode
     feature_list_exists = (project_dir / "feature_list.json").exists()
-    needs_init = not feature_list_exists
-    needs_enhancement_init = enhance and feature_list_exists
 
-    if needs_enhancement_init:
-        print("\n  Enhancement mode: Adding features to existing project")
-    elif needs_init:
-        print("\n  New project: Will run initializer first")
+    if continue_mode:
+        if not feature_list_exists:
+            print("\n  Error: Cannot use --continue without existing feature_list.json")
+            print("  Run 'uv run agent' first to initialize the feature list.")
+            sys.exit(1)
+        print("\n  Continuing: Working on existing features only")
+        skip_initializer = True
     else:
-        print("\n  Resuming: Continuing from existing feature_list.json")
+        # Need instructions for initializer
+        if not instructions:
+            print("\n  Error: No instructions provided!")
+            print("  Either create app_spec.md or run: uv run agent \"Your app description\"")
+            sys.exit(1)
+
+        if feature_list_exists:
+            print("\n  Existing project: Running initializer (may add new features)")
+        else:
+            print("\n  New project: Running initializer to create feature list")
+        skip_initializer = False
 
     session = 1
     iteration = 0
     total_run_time = 0.0
+    initializer_done = skip_initializer  # Skip if --continue mode
 
     while True:
         if max_iterations and iteration >= max_iterations:
@@ -427,12 +475,10 @@ def run_agent(
             break
 
         # Determine which prompt to use
-        if needs_enhancement_init and iteration == 0:
-            prompt = load_prompt(project_dir, "enhancement_prompt")
-            session_type = "enhancement_init"
-            needs_enhancement_init = False
-        elif needs_init and iteration == 0:
-            prompt = load_prompt(project_dir, "initializer_prompt")
+        if not initializer_done:
+            prompt_template = load_prompt(project_dir, "initializer_prompt")
+            # Inject instructions into the initializer prompt
+            prompt = f"{prompt_template}\n\n## App Instructions\n\n{instructions}"
             session_type = "initializer"
         else:
             prompt = load_prompt(project_dir, "coding_prompt")
@@ -457,9 +503,14 @@ def run_agent(
 
         print(f"\n  Session result: {status}")
 
-        # Validate feature_list.json wasn't tampered with
+        # Validate feature_list.json changes
+        # In --continue mode, don't allow new features to be added
         features_after = load_feature_list(project_dir)
-        is_valid, error = validate_feature_changes(features_before, features_after)
+        is_valid, error = validate_feature_changes(
+            features_before,
+            features_after,
+            allow_additions=not continue_mode
+        )
 
         if not is_valid:
             print(f"\n  WARNING: Invalid feature_list.json change: {error}")
@@ -478,10 +529,10 @@ def run_agent(
         print_session_result(newly_completed, prev_passing, duration, total_run_time)
 
         # After initializer, check that feature_list.json was created
-        if session_type in ("initializer", "enhancement_init"):
+        if session_type == "initializer":
             if (project_dir / "feature_list.json").exists():
-                print("\n  feature_list.json created!")
-                needs_init = False
+                print("\n  feature_list.json created/updated!")
+                initializer_done = True
             else:
                 print("\n  WARNING: feature_list.json not created - will retry")
 
@@ -506,7 +557,7 @@ def run_agent(
         if max_iterations is None or iteration < max_iterations:
             if wait_for_stop_signal(DELAY_BETWEEN_SESSIONS):
                 print(f"\n  Paused after session {session - 1}")
-                print(f"  Resume with: uv run agent")
+                print(f"  Resume with: uv run agent --continue")
                 return
 
 
@@ -515,15 +566,29 @@ def main():
         description="FastReact Autonomous Coding Agent",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Runs via Claude Code CLI using your existing authentication.
+Commands:
+  uv run agent [INSTRUCTIONS]  Run initializer + coding (uses app_spec.md or INSTRUCTIONS)
+  uv run agent --continue      Skip initializer, only code existing features
 
 Examples:
-  uv run agent                      # Run the agent
-  uv run agent --max-iterations 5   # Run at most 5 sessions
-  uv run agent --verbose            # Stream output in real-time
-  uv run agent --enhance            # Add features to existing project
-  uv run agent --timeout 1800       # 30 minute timeout per session
+  uv run agent                              # Uses app_spec.md for instructions
+  uv run agent "Build a todo app"           # Uses CLI argument for instructions
+  uv run agent --continue                   # Resume coding existing features only
+  uv run agent --continue -n 5              # Run at most 5 coding sessions
+  uv run agent -v                           # Stream output in real-time
         """,
+    )
+    parser.add_argument(
+        "instructions",
+        nargs="?",
+        default=None,
+        help="App instructions (optional, defaults to reading app_spec.md)"
+    )
+    parser.add_argument(
+        "--continue", "-c",
+        dest="continue_mode",
+        action="store_true",
+        help="Continue mode: skip initializer, only code existing features"
     )
     parser.add_argument(
         "--max-iterations", "-n",
@@ -541,11 +606,6 @@ Examples:
         action="store_true",
         help="Stream output in real-time instead of capturing"
     )
-    parser.add_argument(
-        "--enhance", "-e",
-        action="store_true",
-        help="Enhancement mode: add features to existing project"
-    )
     args = parser.parse_args()
 
     # Check that Claude Code CLI is available
@@ -557,16 +617,20 @@ Examples:
     # Project is parent of agent/
     project_dir = Path(__file__).parent.parent
 
+    # Get instructions from CLI (creates app_spec.md) or read existing app_spec.md
+    instructions = get_or_create_app_spec(project_dir, args.instructions)
+
     try:
         run_agent(
             project_dir,
+            instructions=instructions,
+            continue_mode=args.continue_mode,
             max_iterations=args.max_iterations,
             timeout=args.timeout,
             verbose=args.verbose,
-            enhance=args.enhance,
         )
     except KeyboardInterrupt:
-        print("\n\n  Interrupted. Resume with: uv run agent")
+        print("\n\n  Interrupted. Resume with: uv run agent --continue")
 
 
 if __name__ == "__main__":

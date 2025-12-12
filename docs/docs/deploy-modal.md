@@ -157,7 +157,7 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
 }
 ```
 
-In Vercel, add these environment variables:
+In Cloudflare Pages, add these environment variables:
 - `VITE_API_URL` = `https://yourusername--my-app-backend-fastapi-app.modal.run`
 - `VITE_MODAL_KEY` = `wk-your-token-id`
 - `VITE_MODAL_SECRET` = `ws-your-token-secret`
@@ -270,14 +270,14 @@ Reduce image size by only installing what you need. Avoid large ML libraries unl
 
 ### CORS errors
 
-Update your FastAPI CORS configuration to include your Vercel domain:
+Update your FastAPI CORS configuration to include your Cloudflare Pages domain:
 
 ```python
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "https://your-app.vercel.app",
+        "https://your-app.pages.dev",
         "https://yourdomain.com",
     ],
     allow_credentials=True,

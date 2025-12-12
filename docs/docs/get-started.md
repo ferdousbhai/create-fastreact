@@ -16,7 +16,7 @@ Before you begin, make sure you have:
 - **Python 3.12+** and **uv** installed
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed and authenticated
 
-**Note:** The CLI will guide you through Modal and Vercel installation and authentication during project setup.
+**Note:** The CLI will guide you through Modal installation and authentication during project setup.
 
 Don't have these yet? Here's how to get them:
 
@@ -36,7 +36,7 @@ Run the create command and follow the prompts:
 pnpm create fastreact my-app
 ```
 
-The CLI first verifies all prerequisites are ready (Claude Code, Modal, Vercel), then prompts for:
+The CLI verifies prerequisites (Claude Code, Modal), then prompts for:
 - **Project name** - Your app's name
 - **App description** - Describe what you want to build in plain English
 - **Proxy auth tokens** - Optional, for production security
@@ -88,7 +88,7 @@ The agent uses your Claude Code authentication.
 - `claude-progress.txt` - Session notes from the AI
 - `git log` - See commits for each feature
 
-Press `Ctrl+C` to pause. Resume anytime with `uv run agent` from the agent directory.
+Press `Ctrl+C` to pause. Resume anytime with `uv run agent --continue` from the agent directory.
 
 ## Manual Development
 
@@ -443,7 +443,7 @@ Now that you have a working app, here's where to go next:
 
 ### Deploy to Production
 
-- [Deploy Frontend to Vercel](?doc=deploy-vercel) - Get your React app on the edge
+- [Deploy Frontend to Cloudflare](?doc=deploy-cloudflare) - Get your React app on the edge
 - [Deploy Backend to Modal](?doc=deploy-modal) - Serverless Python with one command
 
 ### Add More Features

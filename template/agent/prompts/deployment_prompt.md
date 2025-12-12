@@ -44,53 +44,78 @@ https://<workspace>--<project>-backend-fastapi-app.modal.run
 
 (Note: Production URL does NOT have `-dev` suffix)
 
-## Step 4: Deploy Frontend to Vercel
+## Step 4: Deploy Frontend to Cloudflare Pages
+
+### Option A: Via Wrangler CLI
 
 ```bash
 cd frontend
 
-# Install Vercel CLI if needed
-which vercel || pnpm add -g vercel
+# Install Wrangler CLI if needed
+which wrangler || npm install -g wrangler
 
-# Deploy
-vercel --prod
+# Build the frontend
+pnpm build
+
+# Deploy to Cloudflare Pages
+wrangler pages deploy dist --project-name=<project-name>
 ```
 
-Follow the prompts to link/create the Vercel project.
+Follow the prompts to log in (if needed) and create/link the Cloudflare Pages project.
 
-**Capture the Vercel URL** from output (e.g., `https://<project>.vercel.app`)
+### Option B: Via Cloudflare Dashboard
 
-## Step 5: Configure Vercel Environment Variables
+1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com/) > Pages
+2. Click "Create a project" > "Connect to Git"
+3. Select your repository
+4. Configure build settings:
+   - **Root directory**: `frontend`
+   - **Build command**: `pnpm build`
+   - **Build output directory**: `dist`
+5. Click "Save and Deploy"
 
-Read the auth values from `.env.local`:
-```bash
-cat frontend/.env.local
-```
+**Capture the Cloudflare Pages URL** from output (e.g., `https://<project>.pages.dev`)
 
-Set environment variables in Vercel:
+## Step 5: Configure Cloudflare Pages Environment Variables
 
+Set environment variables in Cloudflare Pages:
+
+### Via Dashboard (Recommended)
+1. Go to Cloudflare Dashboard > Pages > Your project > Settings > Environment variables
+2. Add the following for **Production**:
+   - `VITE_API_URL` = `<modal-production-url>`
+   - `VITE_MODAL_KEY` = `<vite-modal-key-value>`
+   - `VITE_MODAL_SECRET` = `<vite-modal-secret-value>`
+3. Click "Save"
+
+### Via Wrangler CLI
 ```bash
 cd frontend
 
-# Set the production Modal backend URL
-echo "<modal-production-url>" | vercel env add VITE_API_URL production
+# Set production environment variables
+wrangler pages secret put VITE_API_URL --project-name=<project-name>
+# Enter: <modal-production-url>
 
-# Set auth credentials (read from .env.local)
-echo "<vite-modal-key-value>" | vercel env add VITE_MODAL_KEY production
-echo "<vite-modal-secret-value>" | vercel env add VITE_MODAL_SECRET production
+wrangler pages secret put VITE_MODAL_KEY --project-name=<project-name>
+# Enter: <vite-modal-key-value>
+
+wrangler pages secret put VITE_MODAL_SECRET --project-name=<project-name>
+# Enter: <vite-modal-secret-value>
 ```
 
 ## Step 6: Redeploy Frontend with Environment Variables
 
 ```bash
-cd frontend && vercel --prod
+cd frontend && pnpm build && wrangler pages deploy dist --project-name=<project-name>
 ```
+
+Or trigger a new deployment from the Cloudflare Dashboard.
 
 ## Step 7: Verify Production Deployment
 
 Test the deployed application:
 
-1. Open the Vercel URL in a browser
+1. Open the Cloudflare Pages URL in a browser
 2. Open browser DevTools → Network tab
 3. Perform actions that trigger API calls
 4. Verify:
@@ -109,8 +134,8 @@ Append to `claude-progress.txt`:
 - URL: https://<workspace>--<project>-backend-fastapi-app.modal.run
 - Status: Deployed
 
-**Frontend (Vercel):**
-- URL: https://<project>.vercel.app
+**Frontend (Cloudflare Pages):**
+- URL: https://<project>.pages.dev
 - Environment variables: Configured
 
 **Deployment Status:** Complete
@@ -129,7 +154,7 @@ git add -A
 git commit -m "chore: production deployment complete
 
 - Backend deployed to Modal
-- Frontend deployed to Vercel
+- Frontend deployed to Cloudflare Pages
 - Environment variables configured
 - Production URLs documented in claude-progress.txt"
 ```
@@ -139,12 +164,17 @@ git commit -m "chore: production deployment complete
 ## Troubleshooting
 
 ### 401 Unauthorized
-- Verify `VITE_MODAL_KEY` and `VITE_MODAL_SECRET` are set correctly in Vercel
+- Verify `VITE_MODAL_KEY` and `VITE_MODAL_SECRET` are set correctly in Cloudflare Pages
 - Verify the token is still valid at https://modal.com/settings/proxy-auth-tokens
-- Redeploy frontend: `cd frontend && vercel --prod`
+- Redeploy frontend after updating environment variables
 
 ### API Calls to Wrong URL
-- Check `VITE_API_URL` in Vercel environment variables
+- Check `VITE_API_URL` in Cloudflare Pages environment variables
 - Ensure it's the production URL (no `-dev` suffix)
 - Ensure no trailing slash
-- Redeploy frontend: `cd frontend && vercel --prod`
+- Redeploy frontend after updating environment variables
+
+### Build Failures
+- Ensure `pnpm build` works locally before deploying
+- Check Cloudflare Pages build logs for errors
+- Verify Node.js version compatibility (set `NODE_VERSION` env var if needed)

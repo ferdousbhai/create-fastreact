@@ -13,9 +13,9 @@ const DOCS = [
         file: 'docs/get-started.md'
     },
     {
-        slug: 'deploy-vercel',
-        title: 'Deploy to Vercel',
-        file: 'docs/deploy-vercel.md'
+        slug: 'deploy-cloudflare',
+        title: 'Deploy to Cloudflare',
+        file: 'docs/deploy-cloudflare.md'
     },
     {
         slug: 'deploy-modal',

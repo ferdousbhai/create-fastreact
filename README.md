@@ -11,7 +11,7 @@ pnpm create fastreact my-app
 - **Frontend**: React 19 + Vite + TypeScript + Tailwind CSS v4 + shadcn/ui
 - **Backend**: FastAPI on Modal (serverless Python)
 - **AI Agent**: Autonomous coding agent that builds your app from a description
-- **Deployment**: Vercel (frontend) + Modal (backend)
+- **Deployment**: Cloudflare Pages (frontend) + Modal (backend)
 
 ## How it works
 
@@ -30,7 +30,6 @@ Based on [Anthropic's autonomous coding architecture](https://www.anthropic.com/
 - [uv](https://docs.astral.sh/uv/) (Python package manager)
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (logged in)
 - [Modal CLI](https://modal.com/docs/guide) (logged in)
-- [Vercel CLI](https://vercel.com/docs/cli) (logged in)
 
 ## Quick Start
 
@@ -39,7 +38,7 @@ Based on [Anthropic's autonomous coding architecture](https://www.anthropic.com/
 pnpm create fastreact my-app
 ```
 
-The CLI verifies prerequisites (Claude Code, Modal, Vercel), then prompts for:
+The CLI verifies prerequisites (Claude Code, Modal), then prompts for:
 - Project name
 - App description (plain English)
 - Proxy auth tokens (optional)
@@ -51,12 +50,23 @@ cd my-app
 
 3. Run the AI agent:
 ```bash
-pnpm run agent
+cd my-app/agent
+uv run agent
+```
+
+Or run directly with instructions (creates `app_spec.md` automatically):
+```bash
+uv run agent "Build a todo app with categories and due dates"
 ```
 
 The agent will:
 - **Session 1 (Initializer)**: Create `feature_list.json` from your description
 - **Session 2+ (Coding)**: Implement features one by one
+
+Resume an interrupted session (skips initializer):
+```bash
+uv run agent --continue
+```
 
 4. Monitor progress:
 - `feature_list.json` - Track which features are done
@@ -115,12 +125,15 @@ modal deploy modal_app.py
 
 ### Frontend
 
+Deploy to Cloudflare Pages via the dashboard or CLI:
+
 ```bash
 cd frontend
-vercel
+pnpm build
+wrangler pages deploy dist --project-name=my-app
 ```
 
-Set environment variables in Vercel:
+Set environment variables in Cloudflare Pages:
 - `VITE_API_URL` - Modal production URL
 - `VITE_MODAL_KEY` - Proxy auth token ID
 - `VITE_MODAL_SECRET` - Proxy auth token secret

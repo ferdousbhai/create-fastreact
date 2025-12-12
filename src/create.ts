@@ -2,9 +2,11 @@ import { existsSync, readdirSync, mkdirSync, copyFileSync, readFileSync, writeFi
 import { join, dirname } from "node:path";
 import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { homedir } from "node:os";
 import pc from "picocolors";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const CLAUDE_SKILLS_DIR = join(homedir(), ".claude", "skills");
 
 interface ProjectConfig {
   projectName: string;
@@ -126,7 +128,7 @@ VITE_MODAL_SECRET=${modalSecret}`
 VITE_API_URL=${devApiUrl}
 ${authSection}
 
-# Production URL (for reference, configure in Vercel)
+# Production URL (for reference, configure in Cloudflare Pages)
 # VITE_API_URL=${prodApiUrl}
 `;
   writeFileSync(join(targetDir, "frontend", ".env.local"), envLocalContent);
@@ -191,6 +193,10 @@ ${config.appDescription}
     console.log(pc.yellow("  Warning: Could not install agent dependencies. Run 'uv sync' in agent/ manually."));
   }
 
+  // Install Claude Code skills to ~/.claude/skills/
+  console.log(pc.dim("  Installing Claude Code skills..."));
+  installBundledSkills(templateDir);
+
   // Initial git commit
   console.log(pc.dim("  Creating initial commit..."));
   try {
@@ -213,8 +219,8 @@ function copyDir(src: string, dest: string, projectName: string) {
     const srcPath = join(src, entry.name);
     let destPath = join(dest, entry.name);
 
-    // Skip node_modules, .venv, __pycache__, etc.
-    if (["node_modules", ".venv", "__pycache__", ".git", "pnpm-lock.yaml", "uv.lock"].includes(entry.name)) {
+    // Skip node_modules, .venv, __pycache__, skills (installed globally), etc.
+    if (["node_modules", ".venv", "__pycache__", ".git", "pnpm-lock.yaml", "uv.lock", "skills"].includes(entry.name)) {
       continue;
     }
 
@@ -245,4 +251,36 @@ function toPascalCase(str: string): string {
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join("");
+}
+
+function installBundledSkills(templateDir: string) {
+  const skillsDir = join(templateDir, "skills");
+  if (!existsSync(skillsDir)) {
+    return;
+  }
+
+  mkdirSync(CLAUDE_SKILLS_DIR, { recursive: true });
+
+  const entries = readdirSync(skillsDir, { withFileTypes: true });
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+
+    const destDir = join(CLAUDE_SKILLS_DIR, entry.name);
+    if (existsSync(destDir)) continue; // Skip if already installed
+
+    // Copy skill directory
+    copyDir(join(skillsDir, entry.name), destDir, "");
+
+    // Run setup for playwright-skill
+    if (entry.name === "playwright-skill") {
+      const packageJson = join(destDir, "package.json");
+      if (existsSync(packageJson)) {
+        try {
+          execSync("pnpm run setup", { cwd: destDir, stdio: "ignore" });
+        } catch {
+          // Setup failed, user can run manually
+        }
+      }
+    }
+  }
 }

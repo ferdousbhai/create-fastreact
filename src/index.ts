@@ -62,124 +62,6 @@ async function ensureClaudeCode(): Promise<boolean> {
   return true;
 }
 
-// =============================================================================
-// Vercel CLI Setup
-// =============================================================================
-
-function isVercelInstalled(): boolean {
-  try {
-    execSync("vercel --version", { stdio: ["pipe", "pipe", "pipe"] });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function getVercelUsername(): string | null {
-  try {
-    const output = execSync("vercel whoami", { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }).trim();
-    return output || null;
-  } catch {
-    return null;
-  }
-}
-
-async function installVercel(): Promise<boolean> {
-  console.log(pc.dim("  Installing Vercel CLI..."));
-
-  const result = spawnSync("npm", ["install", "-g", "vercel"], {
-    stdio: "inherit",
-  });
-
-  if (result.status === 0) {
-    console.log(pc.green("  ✔"), "Vercel CLI installed");
-    return true;
-  } else {
-    console.log(pc.red("  ✖"), "Failed to install Vercel CLI");
-    console.log(pc.dim("    Try manually: npm install -g vercel"));
-    return false;
-  }
-}
-
-async function loginVercel(): Promise<boolean> {
-  console.log(pc.dim("  Opening browser for Vercel login..."));
-  console.log();
-
-  const result = spawnSync("vercel", ["login"], {
-    stdio: "inherit",
-  });
-
-  if (result.status === 0) {
-    const username = getVercelUsername();
-    if (username) {
-      console.log();
-      console.log(pc.green("  ✔"), `Logged in as ${pc.cyan(username)}`);
-      return true;
-    }
-  }
-
-  console.log(pc.red("  ✖"), "Vercel login failed");
-  return false;
-}
-
-async function ensureVercel(): Promise<string | null> {
-  // Check if Vercel is installed
-  if (!isVercelInstalled()) {
-    console.log(pc.yellow("  ⚠"), "Vercel CLI not found");
-    console.log();
-
-    const { install } = await prompts({
-      type: "confirm",
-      name: "install",
-      message: "Install Vercel CLI now?",
-      initial: true,
-    });
-
-    if (!install) {
-      console.log();
-      console.log(pc.dim("  Vercel is required for frontend deployment."));
-      console.log(pc.dim("  Install manually: npm install -g vercel"));
-      return null;
-    }
-
-    console.log();
-    if (!await installVercel()) {
-      return null;
-    }
-    console.log();
-  }
-
-  // Check if logged in
-  let username = getVercelUsername();
-  if (!username) {
-    console.log(pc.yellow("  ⚠"), "Not logged in to Vercel");
-    console.log();
-
-    const { login } = await prompts({
-      type: "confirm",
-      name: "login",
-      message: "Log in to Vercel now?",
-      initial: true,
-    });
-
-    if (!login) {
-      console.log();
-      console.log(pc.dim("  Vercel account required for frontend deployment."));
-      console.log(pc.dim("  Log in manually: vercel login"));
-      return null;
-    }
-
-    console.log();
-    if (!await loginVercel()) {
-      return null;
-    }
-
-    username = getVercelUsername();
-  }
-
-  return username;
-}
-
 function validateProjectName(name: string): string | true {
   if (!name) return "Project name is required";
   if (!/^[a-z0-9-]+$/.test(name)) {
@@ -327,14 +209,6 @@ async function main() {
     process.exit(1);
   }
   console.log(pc.green("  ✔"), `Modal authenticated (${pc.cyan(modalUsername)})`);
-
-  // Ensure Vercel is installed and logged in
-  const vercelUsername = await ensureVercel();
-  if (!vercelUsername) {
-    console.log(pc.red("\nVercel setup required. Exiting."));
-    process.exit(1);
-  }
-  console.log(pc.green("  ✔"), `Vercel authenticated (${pc.cyan(vercelUsername)})`);
 
   console.log();
   console.log(pc.green("  All prerequisites ready!"));
