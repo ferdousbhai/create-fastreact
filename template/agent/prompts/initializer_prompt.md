@@ -213,4 +213,10 @@ Write to `claude-progress.txt`:
 
 ---
 
+## ⚠️ SECURITY: Modal-Only Backend
+
+**NEVER run backend code locally.** Always use `modal serve` or `modal deploy`.
+
+---
+
 **IMPORTANT**: Do NOT implement any features yet. Just set up configuration and create the plan files.

@@ -212,3 +212,9 @@ After completing ONE feature:
 4. **Leave codebase working** - No broken features when you exit
 5. **Document your work** - claude-progress.txt is the handoff
 6. **If blocked** - Document clearly and move to next feature
+
+---
+
+## ⚠️ SECURITY: Modal-Only Backend
+
+**NEVER run backend code locally.** Always use `modal serve` or `modal deploy`.
