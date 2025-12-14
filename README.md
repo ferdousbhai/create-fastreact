@@ -1,5 +1,7 @@
 # create-fastreact
 
+> **Archived**: This project is no longer actively maintained. Feel free to fork it if you'd like to continue development.
+
 AI-first full-stack framework. Describe your app, let AI build it.
 
 ```bash

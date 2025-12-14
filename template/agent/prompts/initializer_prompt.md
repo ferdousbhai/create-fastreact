@@ -2,22 +2,17 @@
 
 You are starting a NEW FastReact project. Your task is to analyze the app, set up configuration, and create a feature list.
 
-## Step 1: Read the App Specification
+## Step 1: Read App Specification
 
 Read `app_spec.md` to understand what the user wants to build.
 
-## Step 2: Verify Modal Authentication (CRITICAL)
-
-Before proceeding, verify Modal CLI is authenticated:
+## Step 2: Verify Modal Authentication
 
 ```bash
 modal token show
 ```
 
-**If NOT authenticated:**
-1. Run `modal token new` to authenticate (opens browser)
-2. If that fails, document in `claude-progress.txt` and warn the user
-3. Do NOT proceed until Modal is authenticated
+If not authenticated, run `modal token new`. Do NOT proceed until authenticated.
 
 ## Step 3: Generate Frontend Environment File
 
@@ -42,181 +37,78 @@ EOF
 
 ## Step 4: Identify Required Backend Secrets
 
-Read `app_spec.md` and identify what backend secrets are needed. Common patterns:
-- AI/LLM features → `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`
-- Database → `DATABASE_URL`
-- Payments → `STRIPE_KEY`, `STRIPE_SECRET`
-- Auth providers → `AUTH_SECRET`, OAuth credentials
-- Email → `SENDGRID_API_KEY`, `RESEND_API_KEY`
-
-
-## Step 5: Check Existing Modal Secrets
-
-Check what secrets already exist:
-
-```bash
-modal secret list
-```
-
-Check if the project secret exists and what keys it contains:
+From `app_spec.md`, identify needed secrets (AI keys, database URLs, payment keys, etc.).
 
 ```bash
 modal secret list | grep <project-name>-secrets
 ```
 
-## Step 6: Notify User of Required Configuration
+## Step 5: Notify User of Required Configuration
 
-Tell the user what they need to set up. Be specific about what's missing:
+Tell the user to:
+1. Fill in `frontend/.env.local` with proxy auth token from https://modal.com/settings/proxy-auth-tokens
+2. Create Modal secrets: `modal secret create <project-name>-secrets KEY="value" ...`
 
-> **Configuration Required**
->
-> Please complete the following before I can proceed:
->
-> **1. Frontend Auth (`frontend/.env.local`):**
-> - Go to https://modal.com/settings/proxy-auth-tokens
-> - Create a new token
-> - Fill in `VITE_MODAL_KEY` and `VITE_MODAL_SECRET`
->
-> **2. Backend Secrets (Modal):**
-> Your app requires these secrets. Create them at https://modal.com/secrets or via CLI:
-> ```bash
-> modal secret create <project-name>-secrets \
->   OPENAI_API_KEY="your-key" \
->   OTHER_SECRET="value"
-> ```
->
-> Required secrets:
-> - `OPENAI_API_KEY`: For AI features
-> - *(list others identified from app_spec.md)*
->
-> Let me know when you've completed this setup.
+List specific secrets needed based on `app_spec.md`. **STOP and wait for user confirmation.**
 
-**STOP HERE and wait for the user to confirm.**
+## Step 6: Validate and Start
 
-## Step 7: Validate Configuration
-
-After the user confirms:
-
-### 7a. Validate Frontend Environment
+After user confirms:
 
 ```bash
-cat frontend/.env.local
+cat frontend/.env.local                    # Verify keys are filled
+modal secret list | grep <project-name>    # Verify secret exists
+cd backend && modal serve modal_app.py     # Start backend, note the URL
 ```
 
-Verify `VITE_MODAL_KEY` and `VITE_MODAL_SECRET` are not empty.
+Update `VITE_API_URL` in `frontend/.env.local` with the Modal URL.
 
-### 7b. Validate Modal Secrets Exist
+Test auth works:
+```bash
+curl -H "Modal-Key: $KEY" -H "Modal-Secret: $SECRET" <modal-url>/api/health
+```
 
 ```bash
-modal secret list | grep <project-name>-secrets
+cd frontend && pnpm install && pnpm run dev
 ```
 
-If the secret doesn't exist or is missing required keys, ask the user to create it.
+Verify at http://localhost:5173 - check console for errors.
 
-### 7c. Start Backend and Test
+## Step 7: Create feature_list.json
 
-Start the backend:
-
-```bash
-cd backend && modal serve modal_app.py
-```
-
-Capture the URL from output (e.g., `https://workspace--project-backend-fastapi-app-dev.modal.run`)
-
-Update `frontend/.env.local` with the URL:
-
-```bash
-sed -i 's|VITE_API_URL=.*|VITE_API_URL=<modal-url>|' frontend/.env.local
-```
-
-Test the connection with auth:
-
-```bash
-MODAL_KEY=$(grep VITE_MODAL_KEY frontend/.env.local | cut -d= -f2)
-MODAL_SECRET=$(grep VITE_MODAL_SECRET frontend/.env.local | cut -d= -f2)
-
-curl -H "Modal-Key: $MODAL_KEY" -H "Modal-Secret: $MODAL_SECRET" <modal-url>/api/health
-```
-
-If this returns `{"status": "ok"}`, configuration is complete. If you get a 401 error, ask the user to verify their proxy auth token values.
-
-## Step 8: Install Frontend Dependencies
-
-```bash
-cd frontend && pnpm install && cd ..
-```
-
-## Step 9: Start Frontend and Verify
-
-```bash
-cd frontend && pnpm run dev
-```
-
-Frontend will be available at http://localhost:5173
-
-Verify the connection works by checking the browser console for any errors.
-
-## Step 10: Create feature_list.json
-
-Based on the app description, create `feature_list.json` as a flat array:
+Create `feature_list.json` as a flat array:
 
 ```json
 [
   {
     "category": "backend-api",
-    "description": "What this feature does and why",
-    "steps": ["Step 1 to verify", "Step 2 to verify", "Step 3 to verify"],
+    "description": "What this feature does",
+    "steps": ["Step 1 to verify", "Step 2 to verify"],
     "passes": false
   }
 ]
 ```
 
-### Standard Categories for FastReact
+**Categories:** `backend-api`, `frontend-ui`, `state`, `auth`, `styling`, `integration`
 
-- `backend-api` - FastAPI endpoints on Modal
-- `frontend-ui` - React components and pages
-- `state` - State management and data flow
-- `auth` - Authentication and authorization
-- `styling` - Tailwind/shadcn styling and responsive design
-- `integration` - Frontend-backend integration
+**Guidelines:**
+- Order by dependency (backend first, then frontend)
+- Each feature completable in ~20-30 min
+- 15-30 features total, all start with `"passes": false`
+- Always start with: health check endpoint, App renders, frontend connects to backend
 
-### Guidelines for Feature Breakdown
-
-1. **Order by dependency**: Backend API first, then frontend integration
-2. **One feature per session**: Each should be completable in ~20-30 min
-3. **Specific verification steps**: Include exact UI actions to test
-4. **15-30 features total**: Adjust based on app complexity
-5. **All start with `"passes": false`**
-
-### Required First Features
-
-Always include these foundational features first:
-1. Health check endpoint at `/api/health`
-2. Root App component renders without errors
-3. Frontend can connect to backend API (with auth)
-
-## Step 11: Initial Commit
+## Step 8: Commit and Document
 
 ```bash
-git add -A
-git commit -m "Initialize project with feature_list.json and configuration"
+git add -A && git commit -m "Initialize project with feature_list.json"
 ```
 
-## Step 12: Update Progress Notes
-
-Write to `claude-progress.txt`:
-- Modal authentication: Verified
-- Proxy auth token: Configured and tested
-- Modal secrets: <list what's configured>
-- Summary of planned features
-- Recommended implementation order
+Update `claude-progress.txt` with: auth status, configured secrets, feature summary.
 
 ---
 
-## ⚠️ SECURITY: Modal-Only Backend
+## ⚠️ SECURITY
 
 **NEVER run backend code locally.** Always use `modal serve` or `modal deploy`.
 
----
-
-**IMPORTANT**: Do NOT implement any features yet. Just set up configuration and create the plan files.
+**IMPORTANT**: Do NOT implement features yet - just configuration and planning.
